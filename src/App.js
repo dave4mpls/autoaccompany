@@ -9,11 +9,6 @@ import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
 
-// Polyfill imports
-import 'core-js/es6/map';   // Required polyfill for <=IE11, from npm core-js package.
-import 'core-js/es6/set';
-import 'raf/polyfill';    // Required 
-
 // MIDI related imports
 import AAPlayer from './MIDI/AAPlayer.js';
 
@@ -70,6 +65,7 @@ class App extends Component {
           </header>
           <PianoKeyboard 
             computerKeyboardMap={ PianoKeyboard.ChromaticKeyboardMap("awsedftgyhujkolp;'", 60)}
+            player={ AAPlayer }
             minNote={36} 
             maxNote={89} 
             percentScreenHeight={25} 

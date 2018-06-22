@@ -124,6 +124,10 @@ export default class PianoKey extends Component {
     render() {
         // note: the part about shift back is a prop passed by keyboard when you need
         // to shift a key back one whole key since the one before it was a black key
+        //
+        // also, there needs to be a pointer event for every corresponding mouse event.
+        // the pointer events override if pointer is available and work the same way as mouse.
+        // strangely, Internet Explorer 11 only has pointer, not touch.
       return (<button 
           className={"piano-key piano-key-" + this.props.type 
             + (this.props.noteDown ? " piano-key-down" : "")
@@ -132,6 +136,10 @@ export default class PianoKey extends Component {
           onMouseUp={(evt) => this.handleButtonUp(evt)}
           onMouseEnter={(evt) => this.handleMouseEnter(evt)}
           onMouseLeave={(evt) => this.handleMouseLeave(evt)}
+          onPointerDown={(evt) => this.handleButtonDown(evt)}
+          onPointerUp={(evt) => this.handleButtonUp(evt)}
+          onPointerEnter={(evt) => this.handleMouseEnter(evt)}
+          onPointerLeave={(evt) => this.handleMouseLeave(evt)}
           onTouchStart={(evt) => this.handleButtonDown(evt)}
           onTouchEnd={(evt) => this.handleButtonUp(evt)}
           onContextMenu={(evt) => this.handleIgnoredEvent(evt)}

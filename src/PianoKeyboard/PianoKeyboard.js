@@ -16,10 +16,10 @@ import './PianoKeyboard.css';
 // sub-components
 import PianoKey from './PianoKey.js';
 
-// MIDI related imports
-import AAPlayer from '../MIDI/AAPlayer.js';
+// No longer needs MIDI components -- this PianoKeyboard can play anything you want, as long
+// as it has a suitable sendInputNoteOn and sendInputNoteOff method and you pass it as the
+// "player" prop.
 
-  
 // Piano Keyboard Component -- does the whole piano keyboard
 // (nota bene: the drum kit is also a kind of piano keyboard, just on the drum channel)
 
@@ -29,7 +29,7 @@ export class PianoKeyboard extends Component {
         defaultVelocity: 127, computerKeyboardMap: { },
         };
     
-    static propTypes = { id: PropTypes.number.isRequired };
+    static propTypes = { id: PropTypes.number.isRequired, player: PropTypes.func.isRequired };
     
     constructor(props) {
         super(props);
@@ -53,7 +53,7 @@ export class PianoKeyboard extends Component {
     handleNoteDown(channel, noteNumber, velocity) {
         if ((this.state.keyDownMap[noteNumber])) return;
         // we ignore double-calls, which for example happen on key repeat.
-        AAPlayer.sendInputNoteOn(channel, noteNumber, velocity);
+        this.props.player.sendInputNoteOn(channel, noteNumber, velocity);
         this.setState(function(prevState) {
             const newState = update(prevState, {"keyDownMap": {[noteNumber]: {$set: true } } })
             return newState;
@@ -63,7 +63,7 @@ export class PianoKeyboard extends Component {
     handleNoteUp(channel, noteNumber) {
         if (!(this.state.keyDownMap[noteNumber])) return;  
         // may get double-called, depending on event sequence, so ignore if already up
-        AAPlayer.sendInputNoteOff(channel, noteNumber);
+        this.props.player.sendInputNoteOff(channel, noteNumber);
         this.setState(function(prevState) {
             const newState = update(prevState, {"keyDownMap": {[noteNumber]: {$set: false } } })
             return newState;
@@ -104,7 +104,7 @@ export class PianoKeyboard extends Component {
         var lastKeyType = "white";
         for (let i of allNotes) {
             var isBlackKey = ([1, 3, 6, 8, 10].indexOf(i % 12) !== -1);
-            var thisKeyType = this.props.channel === AAPlayer.MIDI_DRUM_CHANNEL ? 'drums' : 
+            var thisKeyType = this.props.channel === this.props.player.MIDI_DRUM_CHANNEL ? 'drums' : 
                 (isBlackKey ? 'black' : 'white');
             // note: we shift a key back using CSS if it's white and the last one was black.
             // that's how we make the keys overlap!

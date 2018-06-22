@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "ajv": "^6.0.0",
+    "babel-polyfill": "^6.26.0",
     "core-js": "^2.5.7",
     "immutability-helper": "^2.7.1",
     "midi.js": "^0.3.1",
