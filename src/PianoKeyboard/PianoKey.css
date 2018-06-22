@@ -1,11 +1,3 @@
-.piano-keyboard {
-    overflow: auto;
-    height: 32vh;
-    width: 100%;
-    white-space: nowrap;
-    background-color: #e0e0e0;
-}
-
 .piano-key {
     touch-action: none;
     -ms-touch-action: none;
@@ -16,7 +8,7 @@
 @media screen and (orientation:portrait) {
     .piano-key-white {
         width: 12vw;
-        height: 25vh;
+        height: 25vh;   /* overridden in code */
         background-color: white;
         z-index: 5;
     }  
@@ -24,7 +16,7 @@
     .piano-key-black {
         width: 8vw;
         margin-left: -4vw;
-        height: 12vh;
+        height: 12vh;   /* overridden in code */
         background-color: black;
         z-index: 10;
     }
@@ -38,7 +30,7 @@
 @media screen and (orientation:landscape) {
     .piano-key-white {
         width: 6vw;
-        height: 25vh;
+        height: 25vh;   /* overridden in code */
         background-color: white;
         z-index: 5;
     }  
@@ -46,7 +38,7 @@
     .piano-key-black {
         width: 4vw;
         margin-left: -2vw;
-        height: 12vh;
+        height: 12vh;   /* overridden in code */
         background-color: black;
         z-index: 10;
     }

@@ -15,10 +15,10 @@ import 'core-js/es6/set';
 import 'raf/polyfill';    // Required 
 
 // MIDI related imports
-import AAPlayer from './AAPlayer.js';
+import AAPlayer from './MIDI/AAPlayer.js';
 
 // Sub-component imports
-import { PianoKeyboard } from './ScreenPiano.js';
+import { PianoKeyboard } from './PianoKeyboard/PianoKeyboard.js';
 
 // App Component -- complete app
 class App extends Component {
@@ -68,7 +68,12 @@ class App extends Component {
             <img src={logo} className="App-logo" alt="logo" />
             <h1 className="App-title">Auto-Accompany Placeholder</h1>
           </header>
-          <PianoKeyboard minNote={36} maxNote={89} percentScreenHeight={25} id={1} />
+          <PianoKeyboard 
+            computerKeyboardMap={ PianoKeyboard.ChromaticKeyboardMap("awsedftgyhujkolp;'", 60)}
+            minNote={36} 
+            maxNote={89} 
+            percentScreenHeight={25} 
+            id={1} />
         </div>
       );
     }
