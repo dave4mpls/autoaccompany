@@ -15,17 +15,10 @@ import 'core-js/es6/set';
 import 'raf/polyfill';    // Required 
 
 // MIDI related imports
-import MIDI from 'midi.js';   // License: MIT
+import AAPlayer from './AAPlayer.js';
 
-// Piano Key Component -- just one piano key, black or white
-function PianoKey(props) {
-  return (<button class="piano-key">&nbsp;&nbsp;</button>)
-}
-
-// Piano Keyboard Component -- does the whole piano keyboard
-function PianoKeyboard(props) {
-  return (<div>{props.children}</div>);
-}
+// Sub-component imports
+import { PianoKeyboard } from './ScreenPiano.js';
 
 // App Component -- complete app
 class App extends Component {
@@ -38,14 +31,19 @@ class App extends Component {
 
   componentDidMount() {
     let myApp = this;   // carry "this" across closure
-    MIDI.loadPlugin({
+    AAPlayer.loadPlugin({
       soundfontUrl: "http://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/",
       instrument: 'acoustic_grand_piano',
       onsuccess: function ()  {
         myApp.setState({soundsLoaded: true});
-        MIDI.programChange(0, "acoustic_grand_piano");
-        MIDI.noteOn(0,64,127,0);
-        MIDI.noteOff(0,64,127,0.5);
+        // initialize MIDI volume (very important!) and instrument
+        AAPlayer.setMasterVolume(127);
+        AAPlayer.programChange(0, 0);
+        // play startup notes that indicate it's working (debugging)
+        AAPlayer.noteOn(0,60,127,0);
+        AAPlayer.noteOff(0,60,0.4);
+        AAPlayer.chordOn(0, [60,63,67],127,0.5);
+        AAPlayer.chordOff(0, [60,63,67], 1.0)
       }
     });
   }
@@ -70,13 +68,7 @@ class App extends Component {
             <img src={logo} className="App-logo" alt="logo" />
             <h1 className="App-title">Auto-Accompany Placeholder</h1>
           </header>
-          <PianoKeyboard>
-            <PianoKey note={64} color="white" />
-            <PianoKey note={66} color="white" />
-            <PianoKey note={68} color="white" />
-            <PianoKey note={69} color="white" />
-            <PianoKey note={69} color="white" />
-          </PianoKeyboard>
+          <PianoKeyboard minNote={36} maxNote={89} percentScreenHeight={25} />
         </div>
       );
     }

@@ -1,0 +1,61 @@
+.piano-keyboard {
+    overflow: auto;
+    height: 32vh;
+    width: 100%;
+    white-space: nowrap;
+    background-color: #e0e0e0;
+}
+
+.piano-key {
+    touch-action: none;
+    position: relative;
+    vertical-align: top;
+}
+
+@media screen and (orientation:portrait) {
+    .piano-key-white {
+        width: 12vw;
+        height: 25vh;
+        background-color: white;
+        z-index: 5;
+    }  
+
+    .piano-key-black {
+        width: 8vw;
+        margin-left: -4vw;
+        height: 12vh;
+        background-color: black;
+        z-index: 10;
+    }
+
+    /* Shiftback has to shift back a whole white key to make the piano keys overlap properly. */
+    .piano-key-shiftback {
+        margin-left: -4vw;
+    }
+}
+
+@media screen and (orientation:landscape) {
+    .piano-key-white {
+        width: 6vw;
+        height: 25vh;
+        background-color: white;
+        z-index: 5;
+    }  
+
+    .piano-key-black {
+        width: 4vw;
+        margin-left: -2vw;
+        height: 12vh;
+        background-color: black;
+        z-index: 10;
+    }
+
+    /* Shiftback has to shift back a whole white key to make the piano keys overlap properly. */
+    .piano-key-shiftback {
+        margin-left: -2vw;
+    }
+}
+
+.piano-key-down {
+    background-color: pink;
+}
