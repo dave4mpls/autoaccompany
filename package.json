@@ -1,5 +1,6 @@
 {
   "name": "autoaccompany",
+  "homepage": "https://www.davewhitesoftware.com/autoaccompany/",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
