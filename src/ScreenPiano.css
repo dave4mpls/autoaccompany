@@ -8,6 +8,7 @@
 
 .piano-key {
     touch-action: none;
+    -ms-touch-action: none;
     position: relative;
     vertical-align: top;
 }

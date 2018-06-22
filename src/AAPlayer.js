@@ -12,7 +12,20 @@ export default class AAPlayer {
     MIDI_DRUM_CHANNEL = 9;
     MIDI_DEFAULT_KEYBOARD_CHANNEL = 0;
 
-    // Methods
+    // Hooks for input methods, typically, just used by the screen keyboards.
+    // Separate from note events so that they can record & other cool things.
+    static sendInputNoteOn(channel, noteNumber, velocity) {
+        this.noteOn(channel, noteNumber, velocity, 0);
+    }
+    static sendInputNoteOff(channel, noteNumber) {
+        this.noteOff(channel, noteNumber, 0);
+    }
+    static sendInputProgramChange(channel, instrument) {
+        this.programChange(channel, instrument);
+    }
+
+    // Ouput Methods similar to those in the MIDI library, but often changed to output to
+    // the desired MIDI port or to the web MIDI library's simulator (and to handle drums):
     static setMasterVolume(x) {
         MIDI.masterVolume = x;
     }

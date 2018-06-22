@@ -68,7 +68,7 @@ class App extends Component {
             <img src={logo} className="App-logo" alt="logo" />
             <h1 className="App-title">Auto-Accompany Placeholder</h1>
           </header>
-          <PianoKeyboard minNote={36} maxNote={89} percentScreenHeight={25} />
+          <PianoKeyboard minNote={36} maxNote={89} percentScreenHeight={25} id={1} />
         </div>
       );
     }
