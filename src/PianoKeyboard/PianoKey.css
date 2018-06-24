@@ -12,6 +12,7 @@
     .piano-key-white {
         width: 12vw;
         height: 25vh;   /* overridden in code */
+        min-height: 140px;
         background-color: white;
         z-index: 5;
     }  
@@ -20,6 +21,7 @@
         width: 8vw;
         margin-left: -4vw;
         height: 12vh;   /* overridden in code */
+        min-height: 70px;
         background-color: black;
         z-index: 10;
     }
@@ -33,16 +35,20 @@
 @media screen and (orientation:landscape) {
     .piano-key-white {
         width: 6vw;
+        max-width: 60px;
         height: 25vh;   /* overridden in code */
         background-color: white;
+        min-height: 140px;
         z-index: 5;
     }  
 
     .piano-key-black {
         width: 4vw;
+        max-width: 40px;
         margin-left: -2vw;
         height: 12vh;   /* overridden in code */
         background-color: black;
+        min-height: 70px;
         z-index: 10;
     }
 

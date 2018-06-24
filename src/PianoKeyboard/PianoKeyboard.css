@@ -1,6 +1,7 @@
 .piano-keyboard {
     overflow: auto;
     height: 32vh;       /* overridden in code */
+    min-height: 170px;
     width: 100%;
     white-space: nowrap;
     background-color: #e0e0e0;

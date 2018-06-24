@@ -12,6 +12,7 @@
   height: 20vh;
   padding: 20px;
   color: white;
+  overflow: hidden;
 }
 
 .App-title {

@@ -1,0 +1,121 @@
+/* Styles for our lovely tab views! */
+
+:root {
+    --tab-color: #009688;   /* also has associated constant in TabView.js. */
+}
+
+/* not sure what this is for: uncomment later? * {box-sizing: border-box} */
+
+.tabpage {
+    height: 100%;
+    margin: 0;
+    font-family: Arial;
+    overflow: hidden;
+    background-color: var (--tab-color);
+}
+
+/* Style vertical sections: flex container of whole page, tabs, and content. */
+.tabcontainer {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    background-color: white;
+}
+
+.tablinkset_1row {
+    flex: 0 0 50px;
+}
+
+.tablinkset_2row {
+    flex: 0 0 100px;
+}
+
+.tablinkset_3row {
+    flex: 0 0 150px;
+}
+
+.tabcontentset_row1 {
+    flex: 1 1 100%;
+    overflow: auto;
+    background-color: var(--tab-color);
+}
+
+.tabcontentset_row2 {
+    flex: 1 1 100%;
+    overflow: auto;
+    background-color: var(--tab-color);
+    position: relative;
+    top: -12px;
+}
+
+.tabcontentset_row3 {
+    flex: 1 1 100%;
+    overflow: auto;
+    background-color: var(--tab-color);
+    position: relative;
+    top: -24px;
+}
+
+/* Style tab links */
+.tablink {
+    background-color: #555;
+    border-top-left-radius: 12px;
+    border-top-right-radius: 12px;
+    color: white;
+    float: left;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    padding: 10px 10px;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+    flex: 0 1 auto;
+    overflow: hidden;
+    height: 0px;    /* overridden with tabheight in code */
+    width: 100%;  /* overridden with 100/tabsPerRow % in code */
+}
+
+.blanktab {
+    background-color: white;
+    border: none;
+}
+
+.tablink:hover {
+    background-color: #999;
+}
+
+.blanktab:hover {
+    background-color: white;
+}
+
+.secondrow {
+    /* this class is used on all tabs 2nd row , to overlap with tabs in previous rows. */
+    position: relative;
+    top: -12px;
+    overflow: visible;
+    background-color: #777;
+}
+
+.thirdrow {
+    /* this class is used on all tabs 3rd row and further along, to overlap with tabs in previous rows. */
+    position: relative;
+    top: -24px;
+    overflow: visible;
+    background-color: #666;
+}
+
+/* Style the tab content */
+.tabcontent {
+    flex: 1 1 auto;
+    color: white;
+    display: none;
+    padding: 10px 20px;
+    overflow: visible;
+}
+
+.tabcaption {
+   color: white;
+   font-size: 12pt;
+   padding: 15px;
+}

@@ -127,7 +127,6 @@ export class PianoKeyboard extends Component {
         }
         return (
             <div>
-                <div>Last Key Pressed: { this.state.lastKeyEvent + " " + this.state.lastKey }</div>
                 <div 
                     className="piano-keyboard"
                     style={keyboardHeightStyle}>

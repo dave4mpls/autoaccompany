@@ -1,0 +1,36 @@
+{
+  "type": "play_notes",
+  "message0": "start playing %1 for %2 seconds",
+  "args0": [
+    {
+      "type": "field_dropdown",
+      "name": "note",
+      "options": [
+        [
+          "C4",
+          "60"
+        ],
+        [
+          "C#4",
+          "61"
+        ],
+        [
+          "D4",
+          "62"
+        ]
+      ]
+    },
+    {
+      "type": "field_number",
+      "name": "duration",
+      "value": 0,
+      "precision": 4
+    }
+  ],
+  "inputsInline": true,
+  "previousStatement": null,
+  "nextStatement": null,
+  "colour": 230,
+  "tooltip": "The start playing block starts playing the note, but moves on to read the next instruction right away.  If you just want to wait for the note to play, use the play block.",
+  "helpUrl": ""
+}
