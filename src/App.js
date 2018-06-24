@@ -64,8 +64,8 @@ class App extends Component {
             <img src={logo} className="App-logo" alt="logo" />
             <h1 className="App-title">Auto-Accompany Placeholder</h1>
           </header>
-          <TabView rows={1}>
-            <Tab name="Piano">
+          <TabView rows={2}>
+            <Tab name="🎹 Piano">
               <PianoKeyboard 
                 computerKeyboardMap={ PianoKeyboard.ChromaticKeyboardMap("1q2w3er5t6yu8i9o0p[=]", 54)}
                 player={ AAPlayer }
@@ -74,10 +74,14 @@ class App extends Component {
                 percentScreenHeight={25} 
                 id={1} />
             </Tab>
-            <Tab name="Drum Kit">
+            <Tab name="🥁 Drums">
             </Tab>
-            <Tab name="Settings">
+            <Tab name="⚙️ Settings">
             To get to higher and lower octaves in the piano, just scroll left and right.  On mobile devices, drag the grey part below the piano keys to do this.
+            </Tab>
+            <Tab name="Fake Tab 1">
+            </Tab>
+            <Tab name="Fake Tab 2">
             </Tab>
           </TabView>
         </div>

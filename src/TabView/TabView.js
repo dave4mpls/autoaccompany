@@ -71,7 +71,7 @@ export class TabView extends Component {
             }
         }
         tabInfo.rows = this.props.rows;
-        tabInfo.tabHeight = 50;
+        tabInfo.tabHeight = 30;
         tabInfo.zBase = 5;
         tabInfo.tabsPerRow = Math.floor(tabInfo.tabArray.length / tabInfo.rows + 0.5);
         tabInfo.blankTabsAtStart = tabInfo.tabsPerRow * tabInfo.rows - tabInfo.tabArray.length;
@@ -144,7 +144,9 @@ export class TabView extends Component {
                                 style = { fullTabStyle }
                                 onClick = { () => thisObject.handleClick(tabInfo.tabArray[i].index) }
                                 >
+                                <span className="tablinktext">
                                 { tabInfo.tabArray[i].name }
+                                </span>
                                 </button>);
                         }
                         return tabcomp;  // return list of tabs

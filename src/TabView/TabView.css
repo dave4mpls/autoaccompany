@@ -11,7 +11,7 @@
     margin: 0;
     font-family: Arial;
     overflow: hidden;
-    background-color: var (--tab-color);
+    background-color: #009688;
 }
 
 /* Style vertical sections: flex container of whole page, tabs, and content. */
@@ -23,37 +23,40 @@
 }
 
 .tablinkset_1row {
-    flex: 0 0 50px;
+    flex: 0 0 30px;
 }
 
 .tablinkset_2row {
-    flex: 0 0 100px;
+    flex: 0 0 60px;
 }
 
 .tablinkset_3row {
-    flex: 0 0 150px;
+    flex: 0 0 90px;
 }
 
 .tabcontentset_row1 {
-    flex: 1 1 100%;
+    flex: 1 1 auto;
     overflow: auto;
-    background-color: var(--tab-color);
+    background-color: #009688;
+    z-index: 100;
 }
 
 .tabcontentset_row2 {
-    flex: 1 1 100%;
+    flex: 1 1 auto;
     overflow: auto;
-    background-color: var(--tab-color);
+    background-color: #009688;
     position: relative;
     top: -12px;
+    z-index: 100;
 }
 
 .tabcontentset_row3 {
-    flex: 1 1 100%;
+    flex: 1 1 auto;
     overflow: auto;
-    background-color: var(--tab-color);
+    background-color: #009688;
     position: relative;
     top: -24px;
+    z-index: 100;
 }
 
 /* Style tab links */
@@ -66,14 +69,19 @@
     border: none;
     outline: none;
     cursor: pointer;
-    padding: 10px 10px;
-    font-size: 14px;
+    padding: 2px 2px 2px 2px;
+    font-size: 12px;
     font-weight: bold;
     text-align: center;
     flex: 0 1 auto;
     overflow: hidden;
     height: 0px;    /* overridden with tabheight in code */
     width: 100%;  /* overridden with 100/tabsPerRow % in code */
+}
+
+.tablinktext {
+    position: relative;
+    top: -4px;
 }
 
 .blanktab {
