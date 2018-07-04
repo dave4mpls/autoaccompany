@@ -4,12 +4,12 @@
 //  correct, available input sources and so forth.
 //
 
-import MIDI from 'midi.js';
+import  MIDI from 'midi_drums';
 
 export default class AAPlayer {
     // MIDI related constants
-    MIDI_DRUM_CHANNEL = 9;
-    MIDI_DEFAULT_KEYBOARD_CHANNEL = 0;
+    static MIDI_DRUM_CHANNEL = 9;
+    static MIDI_DEFAULT_KEYBOARD_CHANNEL = 0;
 
     // Hooks for input methods, typically, just used by the screen keyboards.
     // Separate from note events so that they can record & other cool things.
@@ -21,6 +21,11 @@ export default class AAPlayer {
     }
     static sendInputProgramChange(channel, instrument) {
         this.programChange(channel, instrument);
+    }
+
+    // Reference to MIDI GM drum names.
+    static drumNames() {
+        return MIDI.GM.drumByNote;
     }
 
     // Ouput Methods similar to those in the MIDI library, but often changed to output to

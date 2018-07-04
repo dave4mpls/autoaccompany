@@ -17,6 +17,17 @@
         z-index: 5;
     }  
 
+    .piano-key-drums {
+        width: 10vw;
+        height: 25vh;   /* overridden in code */
+        font-size: 12px;
+        white-space: normal;
+        background-color: #d0d0d0;
+        border-radius: 14px;
+        z-index: 5;
+        min-height: 60px;
+    }  
+
     .piano-key-black {
         width: 8vw;
         margin-left: -4vw;
@@ -40,6 +51,17 @@
         background-color: white;
         min-height: 140px;
         z-index: 5;
+    }  
+
+    .piano-key-drums {
+        width: 10vw;
+        height: 25vh;   /* overridden in code */
+        background-color: #d0d0d0;
+        font-size: 12px;
+        white-space: normal;
+        border-radius: 14px;
+        z-index: 5;
+        min-height: 60px;
     }  
 
     .piano-key-black {

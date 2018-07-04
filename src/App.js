@@ -13,8 +13,7 @@ import './App.css';
 import AAPlayer from './MIDI/AAPlayer.js';
 
 // Sub-component imports
-import { PianoKeyboard } from './PianoKeyboard/PianoKeyboard.js';
-import { Tab, TabView } from './TabView/TabView.js';
+import { InstrumentTabs } from './InstrumentTabs.js';
 
 // App Component -- complete app
 class App extends Component {
@@ -29,12 +28,13 @@ class App extends Component {
     let myApp = this;   // carry "this" across closure
     AAPlayer.loadPlugin({
       soundfontUrl: "./soundfonts/",
-      instrument: [ 'acoustic_grand_piano', 'drums', 'vibraphone' ],
+      instrument: [ 'acoustic_grand_piano', 'drums' ],
       onsuccess: function ()  {
         myApp.setState({soundsLoaded: true});
         // initialize MIDI volume (very important!) and instrument
         AAPlayer.setMasterVolume(127);
         AAPlayer.programChange(0, 0);
+        AAPlayer.programChange(9, 0);  // change to standard drum kit
         // play startup notes that indicate it's working (debugging)
         AAPlayer.noteOn(0,60,127,0);
         AAPlayer.noteOff(0,60,0.4);
@@ -64,26 +64,7 @@ class App extends Component {
             <img src={logo} className="App-logo" alt="logo" />
             <h1 className="App-title">Auto-Accompany Placeholder</h1>
           </header>
-          <TabView rows={2}>
-            <Tab name="🎹 Piano">
-              <PianoKeyboard 
-                computerKeyboardMap={ PianoKeyboard.ChromaticKeyboardMap("1q2w3er5t6yu8i9o0p[=]", 54)}
-                player={ AAPlayer }
-                minNote={36} 
-                maxNote={89} 
-                percentScreenHeight={25} 
-                id={1} />
-            </Tab>
-            <Tab name="🥁 Drums">
-            </Tab>
-            <Tab name="⚙️ Settings">
-            To get to higher and lower octaves in the piano, just scroll left and right.  On mobile devices, drag the grey part below the piano keys to do this.
-            </Tab>
-            <Tab name="Fake Tab 1">
-            </Tab>
-            <Tab name="Fake Tab 2">
-            </Tab>
-          </TabView>
+          <InstrumentTabs />
         </div>
       );
     }

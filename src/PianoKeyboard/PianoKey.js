@@ -10,7 +10,8 @@ import './PianoKey.css';
 // press it it makes a note and when you let go the note stops.
 export default class PianoKey extends Component {
     static defaultProps = { channel: 0, 
-        defaultVelocity: 127, type: "white", shiftBack: false, noteDown: false };
+        defaultVelocity: 127, type: "white", shiftBack: false, noteDown: false,
+        buttonText: "" };
     
     static propTypes = { id: PropTypes.number.isRequired };
 
@@ -147,7 +148,7 @@ export default class PianoKey extends Component {
           keyboardid={this.props.id}
           keyboardnote={this.props.note}
           style={this.props.style}
-          >
+          >{this.props.buttonText}
           </button>)
     }
   }

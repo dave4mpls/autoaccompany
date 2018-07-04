@@ -106,6 +106,7 @@ export class PianoKeyboard extends Component {
             var isBlackKey = ([1, 3, 6, 8, 10].indexOf(i % 12) !== -1);
             var thisKeyType = this.props.channel === this.props.player.MIDI_DRUM_CHANNEL ? 'drums' : 
                 (isBlackKey ? 'black' : 'white');
+            var buttonText = (thisKeyType === "drums" ? this.props.player.drumNames()[i] : "");
             // note: we shift a key back using CSS if it's white and the last one was black.
             // that's how we make the keys overlap!
             keyBuffer.push(<PianoKey 
@@ -118,6 +119,7 @@ export class PianoKeyboard extends Component {
                 type={thisKeyType}
                 shiftBack={(thisKeyType==="white" && lastKeyType==="black")}
                 channel={this.props.channel} 
+                buttonText={buttonText}
                 onNoteDown={ (channel, noteNumber, velocity) => 
                     this.handleNoteDown(channel, noteNumber, velocity) }
                 onNoteUp={ (channel, noteNumber) =>
@@ -125,10 +127,13 @@ export class PianoKeyboard extends Component {
                 />);
             lastKeyType = thisKeyType;
         }
+        var keyboardClassNames = "piano-keyboard";
+        if (this.props.channel === this.props.player.MIDI_DRUM_CHANNEL)
+            keyboardClassNames += " piano-keyboard-drums";
         return (
             <div>
                 <div 
-                    className="piano-keyboard"
+                    className={keyboardClassNames}
                     style={keyboardHeightStyle}>
                 {keyBuffer}
                 </div>
