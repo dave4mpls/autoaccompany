@@ -28,8 +28,8 @@ class App extends Component {
   componentDidMount() {
     let myApp = this;   // carry "this" across closure
     AAPlayer.loadPlugin({
-      soundfontUrl: "http://gleitz.github.io/midi-js-soundfonts/FluidR3_GM/",
-      instrument: 'acoustic_grand_piano',
+      soundfontUrl: "./soundfonts/",
+      instrument: [ 'acoustic_grand_piano', 'drums', 'vibraphone' ],
       onsuccess: function ()  {
         myApp.setState({soundsLoaded: true});
         // initialize MIDI volume (very important!) and instrument

@@ -4,8 +4,7 @@
 //  correct, available input sources and so forth.
 //
 
-import MIDI from 'midi.js';   // License: MIT
-
+import MIDI from 'midi.js';
 
 export default class AAPlayer {
     // MIDI related constants
