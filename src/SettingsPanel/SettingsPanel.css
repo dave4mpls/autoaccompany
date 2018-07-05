@@ -1,0 +1,34 @@
+.settings-panel {
+    box-sizing: border-box;
+    overflow: auto;
+    height: 32vh;       /* overridden in code */
+    min-height: 170px;
+    width: 100%;
+    background-color: #e0e0e0;
+    text-align: left;
+    color: black;
+    border: none;
+    padding: 5px;
+}
+
+.settings-table {
+    width: 100%;
+    max-width: 500px;
+    border-collapse: collapse;
+}
+
+.settings-table-cell {
+    width: 50%;
+    max-width: 250px;
+    border-bottom: thin solid #d0d0d0;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    box-sizing: border-box;
+    padding: 3px;
+    font-size: 14px;
+}
+
+.settings-input {
+    border: thin solid black;
+}

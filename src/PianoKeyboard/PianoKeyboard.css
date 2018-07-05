@@ -5,6 +5,7 @@
     width: 100%;
     white-space: nowrap;
     background-color: #e0e0e0;
+    background-image: url('../scroller.png');
 }
 
 .piano-keyboard-drums {

@@ -26,6 +26,7 @@
         border-radius: 14px;
         z-index: 5;
         min-height: 60px;
+        overflow: hidden;
     }  
 
     .piano-key-black {
@@ -62,6 +63,7 @@
         border-radius: 14px;
         z-index: 5;
         min-height: 60px;
+        overflow: hidden;
     }  
 
     .piano-key-black {

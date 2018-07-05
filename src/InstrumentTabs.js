@@ -10,12 +10,13 @@ import AAPlayer from './MIDI/AAPlayer.js';
 //-- Sub-component imports
 import { PianoKeyboard } from './PianoKeyboard/PianoKeyboard.js';
 import { Tab, TabView } from './TabView/TabView.js';
+import { SettingsPanel } from './SettingsPanel/SettingsPanel.js';
 
 export class InstrumentTabs extends Component {
     render() {
         return (
             <TabView rows={1}>
-            <Tab name="🎹 Piano">
+            <Tab name="🎹 Keyboard">
               <PianoKeyboard 
                 computerKeyboardMap={ PianoKeyboard.ChromaticKeyboardMap("1q2w3er5t6yu8i9o0p[=]", 54)}
                 player={ AAPlayer }
@@ -43,7 +44,9 @@ export class InstrumentTabs extends Component {
                 id={2} />
             </Tab>
             <Tab name="⚙️ Settings">
-            To get to higher and lower octaves in the piano, just scroll left and right.  On mobile devices, drag the grey part below the piano keys to do this.
+                <SettingsPanel
+                percentScreenHeight={25}
+                />
             </Tab>
           </TabView>
         );

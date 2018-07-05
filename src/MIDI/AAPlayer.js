@@ -23,9 +23,17 @@ export default class AAPlayer {
         this.programChange(channel, instrument);
     }
 
-    // Reference to MIDI GM drum names.
+    // Get various properties from the underlying MIDI interface.
     static drumNames() {
         return MIDI.GM.drumByNote;
+    }
+
+    static byId() {
+        return MIDI.GM.byId;
+    }
+
+    static channels() {
+        return MIDI.channels;
     }
 
     // Ouput Methods similar to those in the MIDI library, but often changed to output to
