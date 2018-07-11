@@ -11,15 +11,29 @@ export default class AAPlayer {
     static MIDI_DRUM_CHANNEL = 9;
     static MIDI_DEFAULT_KEYBOARD_CHANNEL = 0;
 
+    // Settings 
+    static playInputSources = [ "internal" ];  
+        // ^ list of MIDI input sources that get re-played out to the output devices
+        // when an input signal is received.  For example, internal screen keyboard
+        // doesn't make any sound, so make sure to play the notes the user presses.
+        // External MIDI keyboard makes its own sounds (unless of course you turn off local playing)
+        // so you wouldn't include it in this list.
+
+    // Internal state
+
+    // Support routines for input processing, recording and routing
+
+    
+
     // Hooks for input methods, typically, just used by the screen keyboards.
     // Separate from note events so that they can record & other cool things.
-    static sendInputNoteOn(channel, noteNumber, velocity) {
+    static sendInputNoteOn(channel, noteNumber, velocity, inputSource = "internal") {
         this.noteOn(channel, noteNumber, velocity, 0);
     }
-    static sendInputNoteOff(channel, noteNumber) {
+    static sendInputNoteOff(channel, noteNumber, inputSource = "internal") {
         this.noteOff(channel, noteNumber, 0);
     }
-    static sendInputProgramChange(channel, instrument) {
+    static sendInputProgramChange(channel, instrument, inputSource = "internal") {
         this.programChange(channel, instrument);
     }
 

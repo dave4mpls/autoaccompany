@@ -3,9 +3,6 @@
 //
 import React, { Component } from 'react';
 
-// Settings widgets
-import { InstrumentSelector } from './InstrumentSelector.js';
-
 // Styles
 import './SettingsPanel.css';
 
@@ -17,7 +14,7 @@ function SettingsCaptionCell(props) {
     return (<td className="settings-table-cell">{props.name}</td>);
 }
 
-function SettingsRow(props) {
+export function SettingsRow(props) {
     return (<tr><SettingsCaptionCell name={props.name} />
         <SettingsValueCell>{props.children}</SettingsValueCell></tr>);
 }
@@ -34,9 +31,7 @@ export class SettingsPanel extends Component {
         return (
             <div style={settingsHeightStyle} className="settings-panel">
                 <SettingsTable>
-                    <SettingsRow name="Instrument on Screen Keyboard">
-                        <InstrumentSelector channel={0} />
-                    </SettingsRow>
+                    { this.props.children }
                 </SettingsTable>
             </div>
         );

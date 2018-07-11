@@ -10,7 +10,10 @@ import AAPlayer from './MIDI/AAPlayer.js';
 //-- Sub-component imports
 import { PianoKeyboard } from './PianoKeyboard/PianoKeyboard.js';
 import { Tab, TabView } from './TabView/TabView.js';
-import { SettingsPanel } from './SettingsPanel/SettingsPanel.js';
+import { SettingsPanel, SettingsRow } from './SettingsPanel/SettingsPanel.js';
+
+// Settings widgets
+import { InstrumentSelector } from './SettingsPanel/InstrumentSelector.js';
 
 export class InstrumentTabs extends Component {
     render() {
@@ -41,12 +44,21 @@ export class InstrumentTabs extends Component {
                 minNote={36}
                 maxNote={81}
                 percentScreenHeight={13}
-                id={2} />
+                id={3} />
             </Tab>
             <Tab name="⚙️ Settings">
-                <SettingsPanel
-                percentScreenHeight={25}
-                />
+                <SettingsPanel percentScreenHeight={25}>
+                    <SettingsRow name="Instrument on Screen Keyboard">
+                        <InstrumentSelector channel={0} />
+                    </SettingsRow>
+                </SettingsPanel>
+            </Tab>
+            <Tab name="⚙️ MIDI Hardware">
+                <SettingsPanel percentScreenHeight={25}>
+                    <SettingsRow name="Output">
+                        {"TBD"}
+                    </SettingsRow>
+                </SettingsPanel>
             </Tab>
           </TabView>
         );
