@@ -14,6 +14,7 @@ import { SettingsPanel, SettingsRow } from './SettingsPanel/SettingsPanel.js';
 
 // Settings widgets
 import { InstrumentSelector } from './SettingsPanel/InstrumentSelector.js';
+import { MIDIPortSelector } from './SettingsPanel/MIDIPortSelector.js';
 
 export class InstrumentTabs extends Component {
     render() {
@@ -56,7 +57,10 @@ export class InstrumentTabs extends Component {
             <Tab name="⚙️ MIDI Hardware">
                 <SettingsPanel percentScreenHeight={25}>
                     <SettingsRow name="Output">
-                        {"TBD"}
+                        <MIDIPortSelector portType="output" />
+                    </SettingsRow>
+                    <SettingsRow name="Input">
+                        <MIDIPortSelector portType="input" />
                     </SettingsRow>
                 </SettingsPanel>
             </Tab>

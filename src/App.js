@@ -1,5 +1,5 @@
 //
-//  Main application file for Web-based MIDI Auto-Accompaniment Program
+//  Main application file for Web-based MIDI Auto-Accompaniment Program (Musical Playground)
 //  Created 6/21/2018 by Dave White
 //  MIT License
 //
@@ -28,6 +28,8 @@ class App extends Component {
   componentDidMount() {
     let myApp = this;   // carry "this" across closure
     AAPlayer.loadPlugin({
+      setupMIDI: true,
+      initialSetup: true,
       soundfontUrl: "./soundfonts/",
       instrument: [ 'acoustic_grand_piano', 'drums' ],
       onsuccess: function ()  {

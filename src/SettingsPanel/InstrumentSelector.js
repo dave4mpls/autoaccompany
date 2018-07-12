@@ -2,6 +2,7 @@
 //  Settings drop down for selecting an instrument for a MIDI channel on the AAPlayer
 //
 import React, { Component } from 'react';
+import { SettingsStorage } from '../SettingsPanel/Settings.js';
 
 // uses popups
 import Popup from "reactjs-popup";
@@ -14,7 +15,8 @@ export class InstrumentSelector extends Component {
 
     constructor(props) {
         super(props);
-        this.state = { open: false, currentInstrument: AAPlayer.channels()[this.props.channel] }
+        this.state = { open: false, currentInstrument: 
+            SettingsStorage.currentInstrument[this.props.channel] }
     }
 
     handleChange(evt) {
@@ -22,8 +24,10 @@ export class InstrumentSelector extends Component {
         this.setState({ currentInstrument: newInstrument });
         let thisObject = this;
         this.openPopup();
-        AAPlayer.loadPlugin({instrument: newInstrument, onsuccess: function()
+        AAPlayer.loadPlugin({setupMIDI: false, instrument: newInstrument, 
+            initialSetup: false, onsuccess: function()
             {
+            SettingsStorage.currentInstrument[thisObject.props.channel] = newInstrument;
             AAPlayer.sendInputProgramChange(thisObject.props.channel, newInstrument);
             thisObject.closePopup();
             }});
