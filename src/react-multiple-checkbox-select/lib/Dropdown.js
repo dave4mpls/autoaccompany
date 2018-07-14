@@ -58,6 +58,7 @@ var DropDown = function (_Component) {
             treeData[index].checked = true;
             defaultList[index].checked = true;
           }
+          return 0;
         });
         return item;
       });

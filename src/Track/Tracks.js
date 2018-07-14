@@ -11,7 +11,7 @@ export class Note {
     static NT_PROGRAM_CHANGE = "program_change";
     constructor(noteType, channel, noteNumber, velocity, extra, delta, duration) {
         this.channel = 0;
-        this.type =
+        this.type = noteType;
     }
 }
 

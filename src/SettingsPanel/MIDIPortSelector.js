@@ -27,7 +27,7 @@ export class MIDIPortSelector extends Component {
     handleChange(values) {
         var newPorts = [ ];
         for (var i = 0; i < values.length; i++) newPorts.push(values[i].value);
-        if (this.props.portType == "input") {
+        if (this.props.portType === "input") {
             AAPlayer.setInput(newPorts);
             SettingsStorage.putSetting("currentInput",newPorts);
         }

@@ -74,7 +74,7 @@ export class PianoKeyboard extends Component {
     handlePitchBend(channel, pitchBend) {
         // handle a pitch bend signal from a key, typically one using the "horizontal pitch bend"
         // setting.
-        if (pitchBend != this.currentPitchBend) {
+        if (pitchBend !== this.currentPitchBend) {
             this.props.player.sendInputPitchBend(channel, pitchBend);
             this.currentPitchBend = pitchBend;
         }

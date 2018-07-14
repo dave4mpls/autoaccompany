@@ -89,7 +89,6 @@ var Select = function (_Component) {
           value = _state.value,
           treeData = _state.treeData,
           isOpen = _state.isOpen,
-          labelPlaceholder = _state.labelPlaceholder,
           inputPlaceholder = _state.inputPlaceholder,
           noContentText = _state.noContentText,
           disabled = _state.disabled,
@@ -140,10 +139,12 @@ var _initialiseProps = function _initialiseProps() {
       var value = [];
       props.data.map(function (item, index) {
         props.value && props.value.map(function (v) {
-          if (item.value == v) {
+          if (item.value === v) {
             value.push({ value: item.value, label: item.label, checked: true });
           }
+          return 0;
         });
+        return 0;
       });
       return value;
     }
@@ -151,7 +152,7 @@ var _initialiseProps = function _initialiseProps() {
   };
 
   this.onDocumentClick = function (e) {
-    if (_this3.state.isOpen == false) return;
+    if (_this3.state.isOpen === false) return;
     var target = e.target;
     var root = (0, _reactDom.findDOMNode)(_this3.rootRef);
     if (!_this3.contains(root, target)) {

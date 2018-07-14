@@ -126,7 +126,7 @@ export default class PianoKey extends Component {
                             // then we can press the note down that we are on.
                             this.handleNoteDown(parseInt(""+touchedElement.getAttribute("keyboardnote"),10));
                         }
-                        else if (touchedElement.getAttribute("keyboardnote") == this.props.note) {
+                        else if (touchedElement.getAttribute("keyboardnote") === this.props.note) {
                             //-- if user is still touching the original key, check if pitch bend
                             //-- or velocity controls are set on.
                             if (SettingsStorage.getSetting("pitchControlHorizontal")) {
@@ -139,7 +139,7 @@ export default class PianoKey extends Component {
                                 console.log("userLeft: " + userLeft + ", pitchBendCenter = " + 
                                     this.pitchBendCenter + ", keyLeft: " + keyLeft +
                                     ", keyWidth = " + keyWidth)
-                                if (this.pitchBendCenter == -1) this.pitchBendCenter = userLeft;
+                                if (this.pitchBendCenter === -1) this.pitchBendCenter = userLeft;
                                 let newPitchBend = 8192;
                                 if (userLeft < this.pitchBendCenter)
                                     newPitchBend -= 8192 * ((this.pitchBendCenter - userLeft) / 
@@ -147,7 +147,7 @@ export default class PianoKey extends Component {
                                 else
                                     newPitchBend += 8192 * ((userLeft - this.pitchBendCenter) / 
                                         (keyLeft + keyWidth - this.pitchBendCenter));
-                                if (newPitchBend != this.pitchBend) {
+                                if (newPitchBend !== this.pitchBend) {
                                     this.pitchBend = newPitchBend;
                                     this.handlePitchBend();
                                 }

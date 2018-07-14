@@ -66,9 +66,7 @@ export class InstrumentTabs extends Component {
                     <SettingsRow name="Special Keys">
                         <div className="settings-extra-note">
                         You can assign keys on your piano keyboard to do tasks, so 
-                        you don't have to go back to the computer.  If you are 
-                        setting Accompaniment, make sure to also look under the 
-                        regular Settings tab to set up how the accompaniment plays.
+                        you don't have to go back to the computer.  
                         </div>
                         <SettingsPanel>
                             <SettingsRow name="Record">
@@ -110,6 +108,10 @@ export class InstrumentTabs extends Component {
                         </SettingsPanel>
                     </SettingsRow>
                     <SettingsRow name="Accompaniment">
+                    <div className="settings-extra-note">
+                        If you are setting Accompaniment, make sure to also look under the 
+                        regular Settings tab to set up how the accompaniment plays.
+                        </div>
                     </SettingsRow>
                 </SettingsPanel>
             </Tab>

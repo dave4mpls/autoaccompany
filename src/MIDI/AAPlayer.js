@@ -45,7 +45,7 @@ class AAPlayerClass {
                     if (thisObject.supportsMIDI()) thisObject.sendInputPassthrough(data, myInputSource);
                     break;  // pass-through set controller
                 case 0xB0:
-                    if (data[1] == 0x7B) thisObject.stopAllNotes();   // do send stop-all-notes message
+                    if (data[1] === 0x7B) thisObject.stopAllNotes();   // do send stop-all-notes message
                     else {
                         //-- pass through all other messages
                         if (thisObject.supportsMIDI()) thisObject.sendInputPassthrough(data, myInputSource);
@@ -71,7 +71,7 @@ class AAPlayerClass {
             if (!thisObject.supportsMIDI()) internalFound = true;
             else {
                 for (let i = 0; i < MIDI.WebMIDI.outputList.length; i++) {
-                    if (MIDI.WebMIDI.outputList[i].id == "internal") internalFound = true;
+                    if (MIDI.WebMIDI.outputList[i].id === "internal") internalFound = true;
                 }
             }
             if (internalFound) {
@@ -156,7 +156,9 @@ class AAPlayerClass {
             try { if (thisObject.supportsMIDI()) MIDI.WebMIDI.stopAllNotes(); } catch(e) { }
         }
         thisObject.programChange = function(channel, instrument) {
-            if (thisObject.supportsMIDI())
+            if (thisObject.supportsMIDI() && instrument < 128)  
+            //-- notice: when loading, drums (special code 128) might be sent; this should NOT be sent
+            //-- as an actual MIDI message to devices-- just send it to WebAudio which understands.
                 MIDI.WebMIDI.programChange(channel, instrument);
             else
                 MIDI.programChange(channel, instrument);
@@ -184,7 +186,7 @@ class AAPlayerClass {
                 if (obj.initialSetup) {
                     // make sure to set all channels to program 0 (except drums) at start!
                     for (let i = 0; i < 16; i++) {
-                        if (i == 9) thisObject.programChange(i,128);
+                        if (i === 9) thisObject.programChange(i,128);
                         else thisObject.programChange(i,0);
                     }
                 }

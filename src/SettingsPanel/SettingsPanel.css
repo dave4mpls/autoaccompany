@@ -28,6 +28,7 @@
 .settings-caption-cell {
     vertical-align: top;
     max-width: 250px;
+    padding: 3px 20px 3px 3px;
 }
 
 .settings-input {

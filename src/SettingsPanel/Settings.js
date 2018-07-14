@@ -46,17 +46,20 @@ class SettingsStorageClass {
         this.persist = function() {
             //-- Called internally by putSetting and putSettingArray to auto-save new settings.
             if (!thisObject._loaded) return;  // we have to be loaded before we persist
-            window.localStorage.setItem("mpSettings", JSON.stringify(thisObject));
+            localStorage.setItem("mpSettings", JSON.stringify(thisObject));
         }
 
         this.load = function () {
             //-- Called publicly to load the settings on startup.
             //   Does NOT send midi messages or set up instruments -- caller has to do that.
-            if (!window.localStorage.getItem("mpSettings")) return; // ignore if not saved yet
+            if (!localStorage.getItem("mpSettings")) {
+                thisObject._loaded = true;  // if not saved yet, just set loaded flag and return
+                return; 
+            }
             //-- we can't just assign the whole object since that will remove all the methods.
             //   we put the settings in a separate method and copy over the properties.
             try {
-                let p = JSON.parse(window.localStorage.getItem("mpSettings"));
+                let p = JSON.parse(localStorage.getItem("mpSettings"));
                 for (let thisItem in p) {
                     thisObject[thisItem] = p[thisItem];
                 }
