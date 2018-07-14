@@ -5,6 +5,7 @@ import React, { Component } from 'react';
 import update from 'immutability-helper';   // license: MIT
 import PropTypes from 'prop-types';  // license: MIT
 import './PianoKey.css';
+import { SettingsStorage } from '../SettingsPanel/Settings.js';
 
 // Piano Key Component -- just one piano key, black or white or, of course, drumpad.  Anything where when you
 // press it it makes a note and when you let go the note stops.
@@ -21,6 +22,8 @@ export default class PianoKey extends Component {
         // (but NOT mousemove-- that's different!) until the finger/mouse is released.
         super(props);
         this.state = { keyDownMap: { }, lastKeyDown: -1 };
+        this.pitchBend = 8192;  // midrange for MIDI pitch bend -- used if Pitch Control is on
+        this.pitchBendCenter = 0; // will be filled in with x coordinate key was depressed at
     }
 
     // here are routines for managing the note state, including note dragging.
@@ -40,6 +43,9 @@ export default class PianoKey extends Component {
             return update(prevState, {"keyDownMap": {[noteNumber]: {$set: false } } });
         });
     }
+    handlePitchBend() {
+        this.props.onPitchBend(this.props.channel, this.pitchBend);
+    }
     handleAllNotesUp() { 
         // special case: when dragging, we often need to turn off all the OTHER notes that we had on before
         // (just associated with this key, not other keys!)
@@ -51,6 +57,9 @@ export default class PianoKey extends Component {
     handleButtonDown(evt) {
       evt.preventDefault();
       evt.stopPropagation();
+      this.pitchBend = 8192;  // reset pitch bend when note goes down
+      if (SettingsStorage.getSetting("pitchControlHorizontal")) this.props.onPitchBend(this.props.channel, this.pitchBend);
+      this.pitchBendCenter = -1; // set it to this first, so the center gets established on first move
       this.handleNoteDown(this.props.note);
     }
   
@@ -116,6 +125,33 @@ export default class PianoKey extends Component {
                             this.handleAllNotesUp();
                             // then we can press the note down that we are on.
                             this.handleNoteDown(parseInt(""+touchedElement.getAttribute("keyboardnote"),10));
+                        }
+                        else if (touchedElement.getAttribute("keyboardnote") == this.props.note) {
+                            //-- if user is still touching the original key, check if pitch bend
+                            //-- or velocity controls are set on.
+                            if (SettingsStorage.getSetting("pitchControlHorizontal")) {
+                                //-- Special Feature: Pitch Bend within a key when you drag horizontally!
+                                //-- Must be enabled in settings, and only works with MIDI synthesizers
+                                //-- since the internal one (WebAudio) has no pitch bend ability.
+                                let keyLeft = touchedElement.offsetLeft;
+                                let keyWidth = touchedElement.offsetWidth;
+                                let userLeft = evt.touches[i].clientX;
+                                console.log("userLeft: " + userLeft + ", pitchBendCenter = " + 
+                                    this.pitchBendCenter + ", keyLeft: " + keyLeft +
+                                    ", keyWidth = " + keyWidth)
+                                if (this.pitchBendCenter == -1) this.pitchBendCenter = userLeft;
+                                let newPitchBend = 8192;
+                                if (userLeft < this.pitchBendCenter)
+                                    newPitchBend -= 8192 * ((this.pitchBendCenter - userLeft) / 
+                                        (this.pitchBendCenter - keyLeft));
+                                else
+                                    newPitchBend += 8192 * ((userLeft - this.pitchBendCenter) / 
+                                        (keyLeft + keyWidth - this.pitchBendCenter));
+                                if (newPitchBend != this.pitchBend) {
+                                    this.pitchBend = newPitchBend;
+                                    this.handlePitchBend();
+                                }
+                            }
                         }
                     }
             }

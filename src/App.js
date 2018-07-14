@@ -10,7 +10,7 @@ import logo from './logo.svg';
 import './App.css';
 
 // MIDI related imports
-import AAPlayer from './MIDI/AAPlayer.js';
+import { AAPlayer } from './MIDI/AAPlayer.js';
 
 // Sub-component imports
 import { InstrumentTabs } from './InstrumentTabs.js';

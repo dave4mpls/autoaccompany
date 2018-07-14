@@ -8,7 +8,7 @@ import { SettingsStorage } from '../SettingsPanel/Settings.js';
 import Popup from "reactjs-popup";
 
 // MIDI related imports
-import AAPlayer from '../MIDI/AAPlayer.js';
+import { AAPlayer } from '../MIDI/AAPlayer.js';
 
 export class InstrumentSelector extends Component {
     static defaultProps = { channel: 0 };
@@ -16,7 +16,7 @@ export class InstrumentSelector extends Component {
     constructor(props) {
         super(props);
         this.state = { open: false, currentInstrument: 
-            SettingsStorage.currentInstrument[this.props.channel] }
+            SettingsStorage.getSettingArray("currentInstrument",this.props.channel) }
     }
 
     handleChange(evt) {
@@ -27,7 +27,7 @@ export class InstrumentSelector extends Component {
         AAPlayer.loadPlugin({setupMIDI: false, instrument: newInstrument, 
             initialSetup: false, onsuccess: function()
             {
-            SettingsStorage.currentInstrument[thisObject.props.channel] = newInstrument;
+            SettingsStorage.putSettingArray("currentInstrument",thisObject.props.channel,newInstrument);
             AAPlayer.sendInputProgramChange(thisObject.props.channel, newInstrument);
             thisObject.closePopup();
             }});

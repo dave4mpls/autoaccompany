@@ -11,7 +11,7 @@ function SettingsValueCell(props) {
 }
 
 function SettingsCaptionCell(props) {
-    return (<td className="settings-table-cell">{props.name}</td>);
+    return (<td className="settings-table-cell settings-caption-cell">{props.name}</td>);
 }
 
 export function SettingsRow(props) {
@@ -24,10 +24,14 @@ function SettingsTable(props) {
     }
         
 export class SettingsPanel extends Component {
-    static defaultProps = { percentScreenHeight: 30 };
+    static defaultProps = {  };
 
     render() {
-        var settingsHeightStyle = { height: (this.props.percentScreenHeight) + "vh" };
+        let settingsHeightStyle = {  }; 
+        // if no percent screen height, this is a child settings panel, and should not
+        // expand to a given height.
+        if (this.props.percentScreenHeight) 
+            settingsHeightStyle = { minHeight: "170px", height: (this.props.percentScreenHeight) + "vh" };
         return (
             <div style={settingsHeightStyle} className="settings-panel">
                 <SettingsTable>

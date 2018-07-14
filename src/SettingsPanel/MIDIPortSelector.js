@@ -5,14 +5,11 @@ import React, { Component } from 'react';
 import update from 'immutability-helper';   // license: MIT
 import { SettingsStorage } from '../SettingsPanel/Settings.js';
 
-// uses popups
-import Popup from "reactjs-popup";
-
 // uses multiple select checkboxes
 import Select from '../react-multiple-checkbox-select/lib/Select.js';    // License: MIT
 
 // MIDI related imports
-import AAPlayer from '../MIDI/AAPlayer.js';
+import { AAPlayer } from '../MIDI/AAPlayer.js';
 
 export class MIDIPortSelector extends Component {
     static defaultProps = { portType: "output" };
@@ -23,8 +20,8 @@ export class MIDIPortSelector extends Component {
             refreshCount: 0,  // we increment this to force a change in state and
                               // redraw the choices when user presses refresh.  This
                               // reloads the MIDI inputs/outputs from WebMIDI.
-            currentOutput: SettingsStorage.currentOutput,
-            currentInput: SettingsStorage.currentInput };
+            currentOutput: SettingsStorage.getSetting("currentOutput"),
+            currentInput: SettingsStorage.getSetting("currentInput") };
     }
 
     handleChange(values) {
@@ -32,22 +29,14 @@ export class MIDIPortSelector extends Component {
         for (var i = 0; i < values.length; i++) newPorts.push(values[i].value);
         if (this.props.portType == "input") {
             AAPlayer.setInput(newPorts);
-            SettingsStorage.currentInput = newPorts;
+            SettingsStorage.putSetting("currentInput",newPorts);
         }
         else {
             AAPlayer.setOutput(newPorts);
-            SettingsStorage.currentOutput = newPorts;
+            SettingsStorage.putSetting("currentOutput",newPorts);
             // make sure all outputs get current main keyboard instrument
-            AAPlayer.programChange(0, SettingsStorage.currentInstrument[0]);
+            AAPlayer.programChange(0, SettingsStorage.getSettingArray("currentInstrument",0));
         }
-    }
-
-    openPopup() {
-        this.setState( { open: true} );
-    }
-
-    closePopup() {
-        this.setState( {open: false} );
     }
 
     handleRefreshButtonClick(evt) {
@@ -59,7 +48,7 @@ export class MIDIPortSelector extends Component {
 
     render() {
         if (!AAPlayer.supportsMIDI()) {
-            return (<div>Your browser does not support MIDI hardware.  Try using Chrome!</div>);
+            return (<div>{ SettingsStorage.midiMissingMessage }</div>);
         }
         let sourceList = 
             (this.props.portType==="input") ? AAPlayer.refreshInputs() : AAPlayer.refreshOutputs();
@@ -67,7 +56,7 @@ export class MIDIPortSelector extends Component {
         let valueList = [ ];
         for (var i = 0; i < sourceList.length; i++) {
             choiceList.push({ value: sourceList[i].id, label: sourceList[i].name });
-            if (SettingsStorage.currentInput.indexOf(sourceList[i].id) !== -1)
+            if ((SettingsStorage.getSetting("currentInput")).indexOf(sourceList[i].id) !== -1)
                 valueList.push(sourceList[i].id);
         }
         return (
@@ -80,14 +69,6 @@ export class MIDIPortSelector extends Component {
             <button onClick={(evt) => this.handleRefreshButtonClick(evt) }>
             { "↻ Check for new " + this.props.portType + "s" }
             </button>
-            <Popup 
-                    open={this.state.open} 
-                    closeOnDocumentClick={false} 
-                    onClose={()=>this.closePopup()} >
-                <div className="modal">
-                Please wait, your instrument is loading...
-                </div>
-            </Popup>
             </span>
         );
     }

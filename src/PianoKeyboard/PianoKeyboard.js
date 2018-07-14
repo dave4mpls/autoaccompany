@@ -29,13 +29,14 @@ export class PianoKeyboard extends Component {
         defaultVelocity: 127, computerKeyboardMap: { },
         };
     
-    static propTypes = { id: PropTypes.number.isRequired, player: PropTypes.func.isRequired };
+    static propTypes = { id: PropTypes.number.isRequired, player: PropTypes.object.isRequired };
     
     constructor(props) {
         super(props);
         this.state = { lastKeyEvent: "none", lastKey: "_", keyDownMap : { } };
         // the keyDownMap maps note numbers on this keyboard to booleans indicating if the note
         // is down.
+        this.currentPitchBend = 8192;
     }
 
     // static routines to help callers set up props
@@ -68,6 +69,15 @@ export class PianoKeyboard extends Component {
             const newState = update(prevState, {"keyDownMap": {[noteNumber]: {$set: false } } })
             return newState;
         });
+    }
+
+    handlePitchBend(channel, pitchBend) {
+        // handle a pitch bend signal from a key, typically one using the "horizontal pitch bend"
+        // setting.
+        if (pitchBend != this.currentPitchBend) {
+            this.props.player.sendInputPitchBend(channel, pitchBend);
+            this.currentPitchBend = pitchBend;
+        }
     }
 
     // Handle (computer) keyboard presses.
@@ -124,6 +134,8 @@ export class PianoKeyboard extends Component {
                     this.handleNoteDown(channel, noteNumber, velocity) }
                 onNoteUp={ (channel, noteNumber) =>
                     this.handleNoteUp(channel, noteNumber) }
+                onPitchBend={ (channel, pitchBend) =>
+                    this.handlePitchBend(channel, pitchBend) }
                 />);
             lastKeyType = thisKeyType;
         }
