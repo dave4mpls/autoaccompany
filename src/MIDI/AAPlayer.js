@@ -55,22 +55,7 @@ class AAPlayerClass {
                     // If internal synth is selected as output, we have to make sure the
                     // instrument is loaded before we can do program change!
                     // TODO: make it so thisObject doesn't throw off rhythm during playing
-                    let internalFound = false;
-                    if (!thisObject.supportsMIDI()) internalFound = true;
-                    else {
-                        for (let i = 0; i < MIDI.WebMIDI.outputList.length; i++) {
-                            if (MIDI.WebMIDI.outputList[i].id == "internal") internalFound = true;
-                        }
-                    }
-                    if (internalFound) {
-                        thisObject.loadPlugin({setupMIDI: false, instrument: data[1], onsuccess: function()
-                            {
-                            thisObject.sendInputProgramChange(myChannel, data[1], myInputSource);
-                            }
-                        });
-                    }
-                    else 
-                        thisObject.sendInputProgramChange(myChannel, data[1], myInputSource);
+                    thisObject.sendInputProgramChangeWithInstrumentLoad(myChannel, data[1], myInputSource);
                     break;
                 case 0xE0: 
                     thisObject.sendInputPitchBend(myChannel, data[1] + (data[2]<<7), myInputSource); 
@@ -79,6 +64,25 @@ class AAPlayerClass {
                     if (thisObject.supportsMIDI()) thisObject.sendInputPassthrough(data, myInputSource);
                     break;  // pass through all other messages
             }
+        }
+
+        thisObject.sendInputProgramChangeWithInstrumentLoad = function(myChannel, programNumber, myInputSource) {
+            let internalFound = false;
+            if (!thisObject.supportsMIDI()) internalFound = true;
+            else {
+                for (let i = 0; i < MIDI.WebMIDI.outputList.length; i++) {
+                    if (MIDI.WebMIDI.outputList[i].id == "internal") internalFound = true;
+                }
+            }
+            if (internalFound) {
+                thisObject.loadPlugin({setupMIDI: false, instrument: programNumber, onsuccess: function()
+                    {
+                    thisObject.sendInputProgramChange(myChannel, programNumber, myInputSource);
+                    }
+                });
+            }
+            else 
+                thisObject.sendInputProgramChange(myChannel, programNumber, myInputSource);
         }
 
         // Hooks for input methods, typically, just used by the screen keyboards.
@@ -103,7 +107,6 @@ class AAPlayerClass {
         }
         thisObject.sendInputPitchBend = function(channel, bend, inputSource = "internal") {
             thisObject.pitchBend(channel, bend);
-            console.log("Bend " + channel + ": " + bend)
         }
 
         // Get various properties from the underlying MIDI interface.

@@ -14,6 +14,10 @@ class SettingsStorageClass {
     //  you use the correct access mechanism, the settings are auto-saved to local storage.
     // 
     constructor() {
+        // internal settings object settings
+        this._loaded = false;  // ONLY persist if we have been loaded!
+
+        // midi hardware settings
         this._currentInstrument = [0,0,0,0,0,0,0,0,0,128,0,0,0,0,0,0];
         this._currentInput = ["internal"];
         this._currentOutput = ["internal"];
@@ -41,11 +45,24 @@ class SettingsStorageClass {
         // Persistence routines.
         this.persist = function() {
             //-- Called internally by putSetting and putSettingArray to auto-save new settings.
+            if (!thisObject._loaded) return;  // we have to be loaded before we persist
             window.localStorage.setItem("mpSettings", JSON.stringify(thisObject));
         }
 
         this.load = function () {
-            //-- Called publicly 
+            //-- Called publicly to load the settings on startup.
+            //   Does NOT send midi messages or set up instruments -- caller has to do that.
+            if (!window.localStorage.getItem("mpSettings")) return; // ignore if not saved yet
+            //-- we can't just assign the whole object since that will remove all the methods.
+            //   we put the settings in a separate method and copy over the properties.
+            try {
+                let p = JSON.parse(window.localStorage.getItem("mpSettings"));
+                for (let thisItem in p) {
+                    thisObject[thisItem] = p[thisItem];
+                }
+
+                thisObject._loaded = true;
+            } catch(e) { }
         }
 
         // Access routines.

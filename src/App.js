@@ -14,6 +14,7 @@ import { AAPlayer } from './MIDI/AAPlayer.js';
 
 // Sub-component imports
 import { InstrumentTabs } from './InstrumentTabs.js';
+import { SettingsStorage } from './SettingsPanel/Settings.js';
 
 // App Component -- complete app
 class App extends Component {
@@ -33,16 +34,35 @@ class App extends Component {
       soundfontUrl: "./soundfonts/",
       instrument: [ 'acoustic_grand_piano', 'drums' ],
       onsuccess: function ()  {
-        myApp.setState({soundsLoaded: true});
         // initialize MIDI volume (very important!) and instrument
         AAPlayer.setMasterVolume(127);
         AAPlayer.programChange(0, 0);
         AAPlayer.programChange(9, 0);  // change to standard drum kit
+        // next: load settings from the persistent store (localStorage)
+        SettingsStorage.load();
+        // we use the loaded settings to set up the MIDI inputs/outputs
+        if (AAPlayer.supportsMIDI()) {
+          AAPlayer.setInput(SettingsStorage.getSetting("currentInput"));
+          AAPlayer.setOutput(SettingsStorage.getSetting("currentOutput"));
+        }
+        // we set the programs on all the channels AFTER setting input/output!
+        // note that this automatically loads any extra instruments since we
+        // send it like a midi instrument would
+        for (let i = 0; i < 16; i++) {
+          AAPlayer.sendInputProgramChangeWithInstrumentLoad(i, 
+            SettingsStorage.getSettingArray("currentInstrument", i));
+        }
         // play startup notes that indicate it's working (debugging)
         AAPlayer.noteOn(0,60,127,0);
         AAPlayer.noteOff(0,60,0.4);
         AAPlayer.chordOn(0, [60,63,67],127,0.5);
-        AAPlayer.chordOff(0, [60,63,67], 1.0)
+        AAPlayer.chordOff(0, [60,63,67], 1.0);
+        // developers particularly appreciate global access to the AAPlayer and
+        // SettingsStorage objects
+        window.AAPlayer = AAPlayer;
+        window.SettingsStorage = SettingsStorage;
+        // finally, set the app state that we are loaded, so the app displays
+        myApp.setState({soundsLoaded: true});
       }
     });
   }
