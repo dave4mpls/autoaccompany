@@ -16,7 +16,7 @@ import { SettingsPanel, SettingsRow } from './SettingsPanel/SettingsPanel.js';
 import { InstrumentSelector } from './SettingsPanel/InstrumentSelector.js';
 import { MIDIPortSelector } from './SettingsPanel/MIDIPortSelector.js';
 import { MIDIKeySelector } from './SettingsPanel/MIDIKeySelector.js';
-import { NumericSetting } from './SettingsPanel/GenericSettings.js';
+import { NumericSetting, ToggleSetting } from './SettingsPanel/GenericSettings.js';
 
 export class InstrumentTabs extends Component {
     render() {
@@ -63,6 +63,9 @@ export class InstrumentTabs extends Component {
                     </SettingsRow>
                     <SettingsRow name="Input">
                         <MIDIPortSelector portType="input" />
+                    </SettingsRow>
+                    <SettingsRow name="Play Notes from MIDI">
+                        <ToggleSetting settingName="playNotesFromMIDI" />
                     </SettingsRow>
                     <SettingsRow name="Special Keys">
                         <div className="settings-extra-note">

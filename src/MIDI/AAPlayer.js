@@ -105,15 +105,19 @@ class AAPlayerClass {
         }
 
         thisObject.sendInputNoteOn = function(channel, noteNumber, velocity, inputSource = "internal") {
+            if (!SettingsStorage.getSetting("playNotesFromMIDI") && inputSource != "internal") return;
             thisObject.noteOn(channel, noteNumber, velocity, 0);
         }
         thisObject.sendInputNoteOff = function(channel, noteNumber, inputSource = "internal") {
+            if (!SettingsStorage.getSetting("playNotesFromMIDI") && inputSource != "internal") return;
             thisObject.noteOff(channel, noteNumber, 0);
         }
         thisObject.sendInputProgramChange = function(channel, instrument, inputSource = "internal") {
+            if (!SettingsStorage.getSetting("playNotesFromMIDI") && inputSource != "internal") return;
             thisObject.programChange(channel, instrument);
         }
         thisObject.sendInputPitchBend = function(channel, bend, inputSource = "internal") {
+            if (!SettingsStorage.getSetting("playNotesFromMIDI") && inputSource != "internal") return;
             thisObject.pitchBend(channel, bend);
         }
 

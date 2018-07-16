@@ -8,8 +8,12 @@ import { SettingsStorage } from '../SettingsPanel/Settings.js';
 import { AAPlayer } from '../MIDI/AAPlayer.js';
 
 // Specialized input boxes
-import NumericInput from 'react-numeric-input';
+import NumericInput from 'react-numeric-input';     //license: MIT
+import Switch from 'react-switch';   // license: MIT
 
+//
+//  Numeric Setting Box with Up/Down Arrows (based on react-numeric-input)
+//
 export class NumericSetting extends Component {
 
     constructor(props) {
@@ -40,3 +44,32 @@ export class NumericSetting extends Component {
     }
 }
 
+//
+//  Toggle Setting Switch with Up/Down Arrows (based on react-toggle-switch)
+//
+export class ToggleSetting extends Component {
+
+    constructor(props) {
+        super(props);
+        this.state = { settingValue: SettingsStorage.getSetting(this.props.settingName) };
+    }
+
+    handleChange(checked) {  
+        // handles change in the setting
+        this.setState(prevState => {
+            SettingsStorage.putSetting(this.props.settingName, checked);
+            return {
+                settingValue: checked
+            };
+        });
+    }
+
+    render() {
+        return (
+            <Switch
+                onChange={(checked) => this.handleChange(checked) }
+                checked={this.state.settingValue}
+            />
+        );
+    }
+}
