@@ -40,7 +40,15 @@ class AAPlayerClass {
             let myInputSource = message.target.id;
             switch (midiCommand) {
                 case 0x80: thisObject.sendInputNoteOff(myChannel, data[1], myInputSource); break;
-                case 0x90: thisObject.sendInputNoteOn(myChannel, data[1], data[2], myInputSource); break;
+                case 0x90:
+                    // -- note on: apply min/max velocity settings, useful for velocity-sensitive
+                    // -- keyboards when you want less dynamic range
+                    let velocity = data[2];
+                    if (velocity < SettingsStorage.getSetting("minVelocity"))
+                        velocity = SettingsStorage.getSetting("minVelocity");
+                    if (velocity > SettingsStorage.getSetting("maxVelocity"))
+                        velocity = SettingsStorage.getSetting("maxVelocity"); 
+                    thisObject.sendInputNoteOn(myChannel, data[1], velocity, myInputSource); break;
                 case 0x00: 
                     if (thisObject.supportsMIDI()) thisObject.sendInputPassthrough(data, myInputSource);
                     break;  // pass-through set controller

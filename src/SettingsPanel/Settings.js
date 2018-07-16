@@ -21,6 +21,10 @@ class SettingsStorageClass {
         this._currentInstrument = [0,0,0,0,0,0,0,0,0,128,0,0,0,0,0,0];
         this._currentInput = ["internal"];
         this._currentOutput = ["internal"];
+
+        // midi velocity settings
+        this._minVelocity = 0;
+        this._maxVelocity = 127;
     
         // frequently used strings that might, however, change-- put them here
         // for example this next one currently says try using chrome, well, I reserve judgement :-P

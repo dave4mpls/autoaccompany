@@ -16,6 +16,7 @@ import { SettingsPanel, SettingsRow } from './SettingsPanel/SettingsPanel.js';
 import { InstrumentSelector } from './SettingsPanel/InstrumentSelector.js';
 import { MIDIPortSelector } from './SettingsPanel/MIDIPortSelector.js';
 import { MIDIKeySelector } from './SettingsPanel/MIDIKeySelector.js';
+import { NumericSetting } from './SettingsPanel/GenericSettings.js';
 
 export class InstrumentTabs extends Component {
     render() {
@@ -112,6 +113,18 @@ export class InstrumentTabs extends Component {
                         If you are setting Accompaniment, make sure to also look under the 
                         regular Settings tab to set up how the accompaniment plays.
                         </div>
+                    </SettingsRow>
+                    <SettingsRow name="Volume (Velocity)">
+                        <SettingsPanel>
+                            <SettingsRow name="Minimum Velocity">
+                                <NumericSetting settingName="minVelocity"
+                                    min={0} max={127} step={10} />
+                            </SettingsRow>
+                            <SettingsRow name="Maximum Velocity">
+                                <NumericSetting settingName="maxVelocity"
+                                        min={0} max={127} step={10} />
+                            </SettingsRow>
+                        </SettingsPanel>
                     </SettingsRow>
                 </SettingsPanel>
             </Tab>
