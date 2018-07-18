@@ -7,6 +7,8 @@
 //  Settings are stored in this one object so that it can be eventually
 //  persisted to local storage or somewhere, in a future version.
 
+import { EventHandler } from '../EventHandler.js';
+
 class SettingsStorageClass {
     //  This object is implemented with the internal storage names prepended with _.
     //  Use getSetting and putSetting (and getSettingArray and putSettingArray) to
@@ -16,6 +18,7 @@ class SettingsStorageClass {
     constructor() {
         // internal settings object settings
         this._loaded = false;  // ONLY persist if we have been loaded!
+        this.events = new EventHandler();
 
         // midi hardware settings
         this._currentInstrument = [0,0,0,0,0,0,0,0,0,128,0,0,0,0,0,0];
@@ -46,6 +49,21 @@ class SettingsStorageClass {
     
         let thisObject = this;
 
+        // Notification routines.
+        
+        this.attachSettingChangeHandler = function(propertyName, eventHandler) {
+            thisObject.events.addEventHandler("onSettingChange", propertyName, eventHandler);
+        }
+
+        this.removeSettingChangeHandler = function(propertyName, eventHandler) {
+            thisObject.events.removeEventHandler("onSettingChange", propertyName, eventHandler);
+        }
+
+        this.notify = function(propertyName) {
+            thisObject.events.callHandlers("onSettingChange", propertyName, null);
+            thisObject.events.callHandlers("onSettingChange", "*", null);
+        }
+
         // Persistence routines.
         this.persist = function() {
             //-- Called internally by putSetting and putSettingArray to auto-save new settings.
@@ -66,6 +84,7 @@ class SettingsStorageClass {
                 let p = JSON.parse(localStorage.getItem("mpSettings"));
                 for (let thisItem in p) {
                     thisObject[thisItem] = p[thisItem];
+                    thisObject.notify(thisItem);
                 }
 
                 thisObject._loaded = true;
@@ -82,6 +101,7 @@ class SettingsStorageClass {
             // Puts a setting value for the given name.
             thisObject[internalName(n)] = v;
             thisObject.persist();
+            thisObject.notify(n);
             return v;
         }
 
@@ -94,6 +114,7 @@ class SettingsStorageClass {
             // Puts a setting value in an array for the given name.
             thisObject[internalName(n)][idx] = v;
             thisObject.persist();
+            thisObject.notify(n);
             return v;
         }
 

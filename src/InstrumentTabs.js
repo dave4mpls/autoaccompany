@@ -31,6 +31,14 @@ export class InstrumentTabs extends Component {
                 maxNote={89} 
                 percentScreenHeight={25} 
                 id={1} />
+              <PianoKeyboard 
+                computerKeyboardMap={ PianoKeyboard.ChromaticKeyboardMap("1q2w3er5t6yu8i9o0p[=]", 54)}
+                player={ AAPlayer }
+                channel={0}
+                minNote={36} 
+                maxNote={89} 
+                percentScreenHeight={25} 
+                id={4} />
             </Tab>
             <Tab name="🥁 Drums">
               <PianoKeyboard

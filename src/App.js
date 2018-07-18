@@ -15,6 +15,8 @@ import { AAPlayer } from './MIDI/AAPlayer.js';
 // Sub-component imports
 import { InstrumentTabs } from './InstrumentTabs.js';
 import { SettingsStorage } from './SettingsPanel/Settings.js';
+import { Note, Track, TrackStorage, TrackList } from './Music/Tracks.js';
+import { MTheory } from './Music/MusicTheory.js';
 
 // App Component -- complete app
 class App extends Component {
@@ -61,6 +63,8 @@ class App extends Component {
         // SettingsStorage objects
         window.AAPlayer = AAPlayer;
         window.SettingsStorage = SettingsStorage;
+        window.MTheory = MTheory;
+        window.TrackList = TrackList;
         // finally, set the app state that we are loaded, so the app displays
         myApp.setState({soundsLoaded: true});
       }
@@ -73,7 +77,6 @@ class App extends Component {
       return (
         <div className="App">
           <header className="App-header">
-            <img src={logo} className="App-logo" alt="logo" />
             <h1 className="App-title">Loading Sounds...</h1>
           </header>
         </div>
@@ -83,11 +86,13 @@ class App extends Component {
       // regular rendering of the app
       return (
         <div className="App">
-          <header className="App-header">
-            <img src={logo} className="App-logo" alt="logo" />
-            <h1 className="App-title">Auto-Accompany Placeholder</h1>
-          </header>
-          <InstrumentTabs />
+          <div className = "App-top">
+            This is the top half where the tracks will go!<br/>
+            And so on and so forth<br/>
+          </div>
+          <div className = "App-bottom">
+            <InstrumentTabs />
+          </div>
         </div>
       );
     }

@@ -105,19 +105,19 @@ class AAPlayerClass {
         }
 
         thisObject.sendInputNoteOn = function(channel, noteNumber, velocity, inputSource = "internal") {
-            if (!SettingsStorage.getSetting("playNotesFromMIDI") && inputSource != "internal") return;
+            if (!SettingsStorage.getSetting("playNotesFromMIDI") && inputSource !== "internal") return;
             thisObject.noteOn(channel, noteNumber, velocity, 0);
         }
         thisObject.sendInputNoteOff = function(channel, noteNumber, inputSource = "internal") {
-            if (!SettingsStorage.getSetting("playNotesFromMIDI") && inputSource != "internal") return;
+            if (!SettingsStorage.getSetting("playNotesFromMIDI") && inputSource !== "internal") return;
             thisObject.noteOff(channel, noteNumber, 0);
         }
         thisObject.sendInputProgramChange = function(channel, instrument, inputSource = "internal") {
-            if (!SettingsStorage.getSetting("playNotesFromMIDI") && inputSource != "internal") return;
+            if (!SettingsStorage.getSetting("playNotesFromMIDI") && inputSource !== "internal") return;
             thisObject.programChange(channel, instrument);
         }
         thisObject.sendInputPitchBend = function(channel, bend, inputSource = "internal") {
-            if (!SettingsStorage.getSetting("playNotesFromMIDI") && inputSource != "internal") return;
+            if (!SettingsStorage.getSetting("playNotesFromMIDI") && inputSource !== "internal") return;
             thisObject.pitchBend(channel, bend);
         }
 
@@ -174,6 +174,15 @@ class AAPlayerClass {
                 MIDI.WebMIDI.programChange(channel, instrument);
             else
                 MIDI.programChange(channel, instrument);
+        }
+        thisObject.send = function(channel, data) {
+            // Send an arbitrary MIDI message only to external MIDI devices (used for messages not 
+            // interpreted by internal synthesizer, so don't send note on/off, program change, or pitch bend
+            // through here).
+            data = data.slice(0);
+            data[0] = ((data[0] & 0xF0) & (channel & 0x0F));
+            data[0] &= 0xFF; data[1] &= 0x7F; 
+            if (thisObject.supportsMIDI()) MIDI.WebMIDI.send(data, 0); 
         }
         thisObject.pitchBend = function(channel, bend) {
             if (thisObject.supportsMIDI())

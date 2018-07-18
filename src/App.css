@@ -1,6 +1,28 @@
 .App {
   text-align: center;
+  display: flex;
+  height: 100%; 
+  width: 100%;
+  left: 0px;
+  top: 0px;
+  position: absolute;
+  flex-direction: column;
+  background-color: #e0e0e0;
+  border: thin solid blue;
 }
+
+.App-top {
+  flex: 1 1 100%;
+  overflow: hidden;
+  border: thin solid orange;
+
+}
+
+.App-bottom {
+  flex: 1 1 calc(100%-50vh);
+  border: thin solid red;
+}
+
 
 .App-logo {
   animation: App-logo-spin infinite 20s linear;
