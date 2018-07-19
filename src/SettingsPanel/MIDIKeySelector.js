@@ -3,8 +3,9 @@
 //  that key.  It shows the key in musical form (e.g. C#4), as a button.  You press the button,
 //  and it pops up a popup window to 
 //
-import React, { Component } from 'react';
+import React from 'react';
 import { SettingsStorage } from '../SettingsPanel/Settings.js';
+import { SettingComponent } from '../SettingsPanel/SettingComponent.js';
 
 // uses popups
 import Popup from "reactjs-popup";
@@ -12,11 +13,13 @@ import Popup from "reactjs-popup";
 // MIDI related imports
 import { AAPlayer } from '../MIDI/AAPlayer.js';
 
-export class MIDIKeySelector extends Component {
+export class MIDIKeySelector extends SettingComponent {
 
     constructor(props) {
         super(props);
-        this.state = { open: false, settingValue: SettingsStorage.getSetting(this.props.settingName) };
+        this.state = { open: false, 
+            settingProperty: this.props.settingName,
+            settingValue: SettingsStorage.getSetting(this.props.settingName) };
     }
 
     handleClick() {  
@@ -34,7 +37,6 @@ export class MIDIKeySelector extends Component {
                     AAPlayer.noteOn(0, message.data[1], 127, 0);
                     AAPlayer.noteOff(0, message.data[1], 0.25);
                 }
-                thisObject.setState({ settingValue: message.data[1] });
                 SettingsStorage.putSetting(thisObject.props.settingName, message.data[1]);
                 thisObject.closePopup();
             }
@@ -50,7 +52,6 @@ export class MIDIKeySelector extends Component {
 
     handleUnassigned() {
         // user wants to not have this feature be assigned to a MIDI key
-        this.setState( { settingValue: 0 });
         SettingsStorage.putSetting(this.props.settingName, 0);
         this.closePopup();
     }

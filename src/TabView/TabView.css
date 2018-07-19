@@ -27,11 +27,13 @@
 }
 
 .tablinkset_2row {
-    flex: 0 0 60px;
+    flex: 0 0 48px;
+    height: 48px;
 }
 
 .tablinkset_3row {
-    flex: 0 0 90px;
+    flex: 0 0 66px;
+    height: 66px;
 }
 
 .tabcontentset_row1 {
@@ -46,7 +48,7 @@
     overflow: auto;
     background-color: #009688;
     position: relative;
-    top: -12px;
+    top: 0px;
     z-index: 100;
 }
 
@@ -55,7 +57,7 @@
     overflow: auto;
     background-color: #009688;
     position: relative;
-    top: -24px;
+    top: 0px;
     z-index: 100;
 }
 

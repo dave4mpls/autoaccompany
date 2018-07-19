@@ -10,39 +10,39 @@ import { AAPlayer } from './MIDI/AAPlayer.js';
 //-- Sub-component imports
 import { PianoKeyboard } from './PianoKeyboard/PianoKeyboard.js';
 import { Tab, TabView } from './TabView/TabView.js';
-import { SettingsPanel, SettingsRow } from './SettingsPanel/SettingsPanel.js';
 
-// Settings widgets
-import { InstrumentSelector } from './SettingsPanel/InstrumentSelector.js';
-import { MIDIPortSelector } from './SettingsPanel/MIDIPortSelector.js';
-import { MIDIKeySelector } from './SettingsPanel/MIDIKeySelector.js';
-import { NumericSetting, ToggleSetting } from './SettingsPanel/GenericSettings.js';
+// Settings panels
+import { MIDIHardwareSettings } from './SettingsPanel/MIDIHardwareSettings.js';
+import { MainSettings } from './SettingsPanel/MainSettings.js';
+import { HiddenSettingsArea } from './SettingsPanel/HiddenSettingsArea.js';
 
 export class InstrumentTabs extends Component {
     render() {
         return (
             <TabView rows={1}>
             <Tab name="🎹 Keyboard">
-              <PianoKeyboard 
-                computerKeyboardMap={ PianoKeyboard.ChromaticKeyboardMap("1q2w3er5t6yu8i9o0p[=]", 54)}
-                player={ AAPlayer }
-                channel={0}
-                minNote={36} 
-                maxNote={89} 
-                percentScreenHeight={25} 
-                id={1} />
-              <PianoKeyboard 
-                computerKeyboardMap={ PianoKeyboard.ChromaticKeyboardMap("1q2w3er5t6yu8i9o0p[=]", 54)}
-                player={ AAPlayer }
-                channel={0}
-                minNote={36} 
-                maxNote={89} 
-                percentScreenHeight={25} 
-                id={4} />
+                <PianoKeyboard 
+                    computerKeyboardMap={ PianoKeyboard.ChromaticKeyboardMap("1q2w3er5t6yu8i9o0p[=]", 54)}
+                    player={ AAPlayer }
+                    channel={0}
+                    minNote={36} 
+                    maxNote={89} 
+                    percentScreenHeight={25} 
+                    id={1} />
+                <HiddenSettingsArea settingName="screenAccompanimentKeyboard">
+                    <PianoKeyboard 
+                        computerKeyboardMap={ PianoKeyboard.ChromaticKeyboardMap("a~s~df~g~h~jk~l;'", 54)}
+                        player={ AAPlayer }
+                        channel={1}
+                        minNote={36} 
+                        maxNote={89} 
+                        percentScreenHeight={25} 
+                        id={4} />
+                </HiddenSettingsArea>
             </Tab>
             <Tab name="🥁 Drums">
               <PianoKeyboard
-                computerKeyboardMap={ PianoKeyboard.ChromaticKeyboardMap("asdfghjkl;'zxcvbnm,./", 36)}
+                computerKeyboardMap={ PianoKeyboard.ChromaticKeyboardMap("zxcvbnm,./", 36)}
                 channel={9}
                 player={ AAPlayer }
                 minNote={36}
@@ -56,88 +56,6 @@ export class InstrumentTabs extends Component {
                 maxNote={81}
                 percentScreenHeight={13}
                 id={3} />
-            </Tab>
-            <Tab name="⚙️ Settings">
-                <SettingsPanel percentScreenHeight={25}>
-                    <SettingsRow name="Instrument on Screen Keyboard">
-                        <InstrumentSelector channel={0} />
-                    </SettingsRow>
-                </SettingsPanel>
-            </Tab>
-            <Tab name="⚙️ MIDI Hardware">
-                <SettingsPanel percentScreenHeight={25}>
-                    <SettingsRow name="Output">
-                        <MIDIPortSelector portType="output" />
-                    </SettingsRow>
-                    <SettingsRow name="Input">
-                        <MIDIPortSelector portType="input" />
-                    </SettingsRow>
-                    <SettingsRow name="Play Notes from MIDI">
-                        <ToggleSetting settingName="playNotesFromMIDI" />
-                    </SettingsRow>
-                    <SettingsRow name="Special Keys">
-                        <div className="settings-extra-note">
-                        You can assign keys on your piano keyboard to do tasks, so 
-                        you don't have to go back to the computer.  
-                        </div>
-                        <SettingsPanel>
-                            <SettingsRow name="Record">
-                                <MIDIKeySelector 
-                                    settingName="recordKey" 
-                                    settingLongName="Record Key" 
-                                    settingDescription="This key starts the recording, on the track selected under the record button." 
-                                    />
-                            </SettingsRow>
-                            <SettingsRow name="Finish/Start Recording Next">
-                                <MIDIKeySelector 
-                                    settingName="finishStartKey" 
-                                    settingLongName="Finish/Start Recording Next Key"
-                                    settingDescription="This key stops the current recording, starts it playing on repeat (so, press it as the downbeat of the next measure after the one you just did), and continues recording on the next track.  You can use this to easily record and layer multiple tracks, but you have to set up the tracks first (adding them, setting their instruments, use of accompaniment keys, etc.)."
-                                    />
-                            </SettingsRow>
-                            <SettingsRow name="Stop">
-                                <MIDIKeySelector 
-                                    settingName="stopKey" 
-                                    settingLongName="Stop Key"
-                                    settingDescription="This key stops the current recording and all playback."
-                                    />
-                            </SettingsRow>
-                            <SettingsRow name="Play">
-                                <MIDIKeySelector 
-                                    settingName="playKey" 
-                                    settingLongName="Play Key"
-                                    settingDescription="This key plays the song."
-                                    />
-                            </SettingsRow>
-                            <SettingsRow name="Rewind">
-                                <MIDIKeySelector 
-                                    settingName="rewindKey" 
-                                    settingLongName="Rewind Key"
-                                    settingDescription="This key rewinds to the start."
-                                    playNote={true}
-                                    />
-                            </SettingsRow>
-                        </SettingsPanel>
-                    </SettingsRow>
-                    <SettingsRow name="Accompaniment">
-                    <div className="settings-extra-note">
-                        If you are setting Accompaniment, make sure to also look under the 
-                        regular Settings tab to set up how the accompaniment plays.
-                        </div>
-                    </SettingsRow>
-                    <SettingsRow name="Volume (Velocity)">
-                        <SettingsPanel>
-                            <SettingsRow name="Minimum Velocity">
-                                <NumericSetting settingName="minVelocity"
-                                    min={0} max={127} step={10} />
-                            </SettingsRow>
-                            <SettingsRow name="Maximum Velocity">
-                                <NumericSetting settingName="maxVelocity"
-                                        min={0} max={127} step={10} />
-                            </SettingsRow>
-                        </SettingsPanel>
-                    </SettingsRow>
-                </SettingsPanel>
             </Tab>
           </TabView>
         );

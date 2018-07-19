@@ -1,9 +1,10 @@
 //
 //  Settings drop down for selecting an input or output port on hardware MIDI
 //
-import React, { Component } from 'react';
+import React from 'react';
 import update from 'immutability-helper';   // license: MIT
 import { SettingsStorage } from '../SettingsPanel/Settings.js';
+import { SettingComponent } from '../SettingsPanel/SettingComponent.js';
 
 // uses multiple select checkboxes
 import Select from '../react-multiple-checkbox-select/lib/Select.js';    // License: MIT
@@ -11,7 +12,7 @@ import Select from '../react-multiple-checkbox-select/lib/Select.js';    // Lice
 // MIDI related imports
 import { AAPlayer } from '../MIDI/AAPlayer.js';
 
-export class MIDIPortSelector extends Component {
+export class MIDIPortSelector extends SettingComponent {
     static defaultProps = { portType: "output" };
 
     constructor(props) {
@@ -20,22 +21,32 @@ export class MIDIPortSelector extends Component {
             refreshCount: 0,  // we increment this to force a change in state and
                               // redraw the choices when user presses refresh.  This
                               // reloads the MIDI inputs/outputs from WebMIDI.
-            currentOutput: SettingsStorage.getSetting("currentOutput"),
-            currentInput: SettingsStorage.getSetting("currentInput") };
+            settingProperty: (this.props.portType === "input" ? "currentInput" : "currentOutput"),
+            settingValue: (this.props.portType === "input" ? SettingsStorage.getSetting("currentInput")
+                : SettingsStorage.getSetting("currentOutput")) };
+    }
+
+    handleNewValue(newPorts) {
+        // called by SettingComponent whenever SettingsStorage properties change, whether
+        // through this UI or elsewhere
+        if (this.props.portType === "input") 
+            AAPlayer.setInput(newPorts);
+        else {
+            AAPlayer.setOutput(newPorts);
+            // make sure all outputs get current main keyboard instrument & accompany instrument
+            AAPlayer.programChange(0, SettingsStorage.getSettingArray("currentInstrument",0));
+            AAPlayer.programChange(1, SettingsStorage.getSettingArray("currentInstrument",1));
+        }
     }
 
     handleChange(values) {
         var newPorts = [ ];
         for (var i = 0; i < values.length; i++) newPorts.push(values[i].value);
         if (this.props.portType === "input") {
-            AAPlayer.setInput(newPorts);
             SettingsStorage.putSetting("currentInput",newPorts);
         }
         else {
-            AAPlayer.setOutput(newPorts);
             SettingsStorage.putSetting("currentOutput",newPorts);
-            // make sure all outputs get current main keyboard instrument
-            AAPlayer.programChange(0, SettingsStorage.getSettingArray("currentInstrument",0));
         }
     }
 
@@ -56,7 +67,7 @@ export class MIDIPortSelector extends Component {
         let valueList = [ ];
         for (var i = 0; i < sourceList.length; i++) {
             choiceList.push({ value: sourceList[i].id, label: sourceList[i].name });
-            if ((SettingsStorage.getSetting("currentInput")).indexOf(sourceList[i].id) !== -1)
+            if ((SettingsStorage.getSetting(this.state.settingProperty)).indexOf(sourceList[i].id) !== -1)
                 valueList.push(sourceList[i].id);
         }
         return (

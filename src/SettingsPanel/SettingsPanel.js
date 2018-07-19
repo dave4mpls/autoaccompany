@@ -6,11 +6,11 @@ import React, { Component } from 'react';
 // Styles
 import './SettingsPanel.css';
 
-function SettingsValueCell(props) {
+export function SettingsValueCell(props) {
     return (<td className="settings-table-cell">{props.children}</td>);
 }
 
-function SettingsCaptionCell(props) {
+export function SettingsCaptionCell(props) {
     return (<td className="settings-table-cell settings-caption-cell">{props.name}</td>);
 }
 
@@ -24,7 +24,7 @@ function SettingsTable(props) {
     }
         
 export class SettingsPanel extends Component {
-    static defaultProps = {  };
+    static defaultProps = { fillAvailableSpace: false };
 
     render() {
         let settingsHeightStyle = {  }; 
@@ -32,6 +32,8 @@ export class SettingsPanel extends Component {
         // expand to a given height.
         if (this.props.percentScreenHeight) 
             settingsHeightStyle = { minHeight: "170px", height: (this.props.percentScreenHeight) + "vh" };
+        if (this.props.fillAvailableSpace) 
+            settingsHeightStyle = { height: "100%", overflow: "auto" }
         return (
             <div style={settingsHeightStyle} className="settings-panel">
                 <SettingsTable>

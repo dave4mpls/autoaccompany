@@ -19,7 +19,7 @@
 }
 
 .App-bottom {
-  flex: 1 1 calc(100%-50vh);
+  flex: 1 1 50vh;
   border: thin solid red;
 }
 

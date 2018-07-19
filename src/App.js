@@ -14,6 +14,7 @@ import { AAPlayer } from './MIDI/AAPlayer.js';
 
 // Sub-component imports
 import { InstrumentTabs } from './InstrumentTabs.js';
+import { RecordingArea } from './RecordingArea.js';
 import { SettingsStorage } from './SettingsPanel/Settings.js';
 import { Note, Track, TrackStorage, TrackList } from './Music/Tracks.js';
 import { MTheory } from './Music/MusicTheory.js';
@@ -87,8 +88,7 @@ class App extends Component {
       return (
         <div className="App">
           <div className = "App-top">
-            This is the top half where the tracks will go!<br/>
-            And so on and so forth<br/>
+            <RecordingArea />
           </div>
           <div className = "App-bottom">
             <InstrumentTabs />

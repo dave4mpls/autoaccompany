@@ -8,6 +8,7 @@ export class EventHandler {
     constructor() {
         let thisObject = this;
         this.notifications = { };
+        this.inNotification = [ ];  // tracks notifications we are currently inside of so we don't recurse them
 
         // Internal routines.
         this.makeKey = function(eventName, propertyName) {
@@ -32,6 +33,7 @@ export class EventHandler {
             let currentEventArray = thisObject.notifications[key];
             if (currentEventArray.indexOf(callbackFunction) !== -1) return; // already there
             currentEventArray.push(callbackFunction);
+            return callbackFunction;
         }
 
         this.removeEventHandler = function(eventName, propertyName, callbackFunction) {
@@ -48,11 +50,16 @@ export class EventHandler {
         this.callHandlers = function(eventName, propertyName, param) {
             // Calls the handlers in this object, passing them the given parameter.
             // Ignores exceptions in the event routines.
+            // And don't call a particular handler if we're actually inside that same handler.
             let key = thisObject.makeKey(eventName, propertyName);
             thisObject.createListIfNeeded(key);
             let currentEventArray = thisObject.notifications[key];
             for (let i = 0; i < currentEventArray.length; i++) { 
-                try { currentEventArray[i](param); } catch(e) { }
+                if (thisObject.inNotification.indexOf(currentEventArray[i]) === -1) {
+                    thisObject.inNotification.push(currentEventArray[i]);
+                    try { currentEventArray[i](param); } catch(e) { }
+                    thisObject.inNotification.pop();
+                }
             }
         }
     }

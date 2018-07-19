@@ -8,7 +8,7 @@ import PropTypes from 'prop-types';  // license: MIT
 import './TabView.css';
 
 export class Tab extends Component {
-    static defaultProps = { caption: "" };
+    static defaultProps = { caption: "", color: "#009688" };
     static propTypes = { name: PropTypes.string.isRequired };
 
     render() {
@@ -17,7 +17,8 @@ export class Tab extends Component {
         // TabView.
         let thisObject = this; // for closure below.
         return (
-            <div className="tabcontent" style={ { display: this.props.displayStyle }}>
+            <div className="tabcontent" style={ { display: this.props.displayStyle,
+                backgroundColor: this.props.color, height: "100%" }}>
                 {
                     function() {
                         let tabcomp = [];
@@ -35,9 +36,8 @@ export class Tab extends Component {
 }
 
 export class TabView extends Component {
-    TAB_VIEW_COLOR = "#009688";
 
-    static defaultProps = { startingTab: 0, rows: 1, height: null };
+    static defaultProps = { startingTab: 0, rows: 1, height: null, color: "#009688" };
     static propTypes = {  };
 
     constructor(props) {
@@ -108,6 +108,9 @@ export class TabView extends Component {
         let thisObject = this;  // for reference by closures below
         let containerStyle = { };
         if (this.props.height) containerStyle.height = this.props.height;
+        let contentSetStyle = { };
+        if (this.props.color) contentSetStyle.backgroundColor = this.props.color;
+        contentSetStyle.height = "100%";
         let tabLinkSetClassName = "tablinkset_" + (tabInfo.rows) + "row";
         let tabContentSetClassName = "tabcontentset_row" + (tabInfo.rows);
         // Render
@@ -136,7 +139,7 @@ export class TabView extends Component {
                             let rowClass = (rowNumber===0?"":(rowNumber===1?"secondrow":"thirdrow"));
                             let fullTabStyle = update(tabStyle, { zIndex: {$set: i + tabInfo.zBase }});
                             if (i===tabInfo.currentTabDisplayOrder) {     // color the current tab
-                                fullTabStyle.backgroundColor = thisObject.TAB_VIEW_COLOR;
+                                fullTabStyle.backgroundColor = thisObject.props.color;
                             }
                             tabcomp.push(<button
                                 key = { tabInfo.tabArray[i].index }
@@ -153,7 +156,7 @@ export class TabView extends Component {
                     }()
                 }
             </div>
-            <div className={ tabContentSetClassName }>
+            <div className={ tabContentSetClassName } style={ contentSetStyle } >
             { 
                 function() {
                     let tabcomp = [];
@@ -161,7 +164,7 @@ export class TabView extends Component {
                     {
                         let displayStyle = (i === tabInfo.currentTabDisplayOrder) ? "block" : "none";
                         tabcomp.push(React.cloneElement(tabInfo.tabArray[i].component, 
-                                { displayStyle: displayStyle }));
+                                { displayStyle: displayStyle, color: thisObject.props.color }));
                     }
                     return tabcomp;
                 }()

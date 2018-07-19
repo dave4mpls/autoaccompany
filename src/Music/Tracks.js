@@ -166,7 +166,7 @@ export class Track {
         // don't advance the clock.)
         let currentTime = performance.now();
         let delta = currentTime - this.lastTime;
-        if (eventType != Note.NT_NOTE_OFF) this.lastTime = currentTime;
+        if (eventType !== Note.NT_NOTE_OFF) this.lastTime = currentTime;
         // next, get actual channel to record to
         if (this.recordToChannel !== Track.TR_RECORD_ANY_CHANNEL)
             channel = this.recordToChannel;
@@ -218,7 +218,7 @@ export class Track {
         let totalDelta = 0; let hasRepeat = this.repeat; let lastDuration = 0;
         for (var i = 0; i < this.notes.length; i++) {
             totalDelta += this.notes[i].delta;
-            if (this.notes[i].noteType == Note.NT_NOTE) lastDuration = this.notes[i].duration;
+            if (this.notes[i].noteType === Note.NT_NOTE) lastDuration = this.notes[i].duration;
         }
         if (allCyclesFlag && hasRepeat)
             return Infinity;
@@ -249,7 +249,7 @@ export class Track {
                     if (!this.repeat) return -1;  // really did pass the end, so don't play.
             }
         }
-        if (deltaSoFar == newPosition) return startIndex;
+        if (deltaSoFar === newPosition) return startIndex;
     }
 
     seek(newPosition) {
@@ -265,9 +265,9 @@ export class Track {
         // we have this iterative loop to handle chords that are played EXACTLY at the same time;
         // otherwise, notes have deltas between them, so the playing is asynchronous.
         while (continueLoop) {
-            if (thisEvent.notes.length === 0) return;   // going forward let's assume we have notes :-)
+            if (thisObject.notes.length === 0) return;   // going forward let's assume we have notes :-)
             // Get the note we want, and determine the delta for it, and handle repeats.
-            if (this.playIndex >= thisEvent.notes.length) {
+            if (this.playIndex >= thisObject.notes.length) {
                 if (!this.repeat) return;
                 this.playIndex = 0;
                 repeatedFlag = true;

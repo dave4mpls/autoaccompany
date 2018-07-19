@@ -1,8 +1,9 @@
 //
 //  Settings drop down for selecting an instrument for a MIDI channel on the AAPlayer
 //
-import React, { Component } from 'react';
+import React from 'react';
 import { SettingsStorage } from '../SettingsPanel/Settings.js';
+import { SettingComponent } from '../SettingsPanel/SettingComponent.js';
 
 // uses popups
 import Popup from "reactjs-popup";
@@ -10,27 +11,35 @@ import Popup from "reactjs-popup";
 // MIDI related imports
 import { AAPlayer } from '../MIDI/AAPlayer.js';
 
-export class InstrumentSelector extends Component {
+export class InstrumentSelector extends SettingComponent {
     static defaultProps = { channel: 0 };
 
     constructor(props) {
         super(props);
-        this.state = { open: false, currentInstrument: 
-            SettingsStorage.getSettingArray("currentInstrument",this.props.channel) }
+        this.state = { open: false, 
+            settingProperty: "currentInstrument",
+            settingIndex: this.props.channel,
+            settingValue: 
+                SettingsStorage.getSettingArray("currentInstrument",this.props.channel) }
     }
 
-    handleChange(evt) {
-        let newInstrument = parseInt("" + evt.target.value, 10);
-        this.setState({ currentInstrument: newInstrument });
+    handleNewValue(newInstrument) {
+        //-- called by SettingComponent whenever the SettingsStorage element it is listening to changes--
+        //-- and actually does all the tasks relating to changing an instrument, including
+        //-- loading the instrument and sending appropriate MIDI signals.
         let thisObject = this;
         this.openPopup();
         AAPlayer.loadPlugin({setupMIDI: false, instrument: newInstrument, 
             initialSetup: false, onsuccess: function()
             {
-            SettingsStorage.putSettingArray("currentInstrument",thisObject.props.channel,newInstrument);
             AAPlayer.sendInputProgramChange(thisObject.props.channel, newInstrument);
             thisObject.closePopup();
             }});
+    }
+
+    handleChange(evt) {
+        let newInstrument = parseInt("" + evt.target.value, 10);
+        SettingsStorage.putSettingArray("currentInstrument", this.props.channel, newInstrument);
     }
 
     openPopup() {
@@ -47,7 +56,7 @@ export class InstrumentSelector extends Component {
             <select 
                 className="settings-input"
                 onChange={(evt)=>this.handleChange(evt)} 
-                value={this.state.currentInstrument}
+                value={this.state.settingValue}
                 >
             {
                 function() {
