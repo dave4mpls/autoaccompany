@@ -40,7 +40,7 @@
     flex: 1 1 auto;
     overflow: auto;
     background-color: #009688;
-    z-index: 100;
+/*    z-index: 100; */
 }
 
 .tabcontentset_row2 {
@@ -49,7 +49,7 @@
     background-color: #009688;
     position: relative;
     top: 0px;
-    z-index: 100;
+/*    z-index: 100; */
 }
 
 .tabcontentset_row3 {
@@ -58,7 +58,7 @@
     background-color: #009688;
     position: relative;
     top: 0px;
-    z-index: 100;
+/*    z-index: 100; */
 }
 
 /* Style tab links */

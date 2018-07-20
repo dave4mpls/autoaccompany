@@ -23,6 +23,7 @@ class SettingsStorageClass extends GenericSettingsStorageClass {
 
         // screen keyboard settings
         this._screenAccompanimentKeyboard = false;
+        this._recordPanelByKeyboard = true;
         this._pitchControlHorizontal = false;  // cool onscreen keyboard pitch bend option!
 
         // midi velocity settings
@@ -38,9 +39,10 @@ class SettingsStorageClass extends GenericSettingsStorageClass {
         this._playNotesFromMIDI = true;        // if false, it only plays notes that are pressed internally
                                                 // (e.g. if your MIDI keyboard makes its own sound).
     
-        // MIDI keyboard special keys -- key numbers
+        // MIDI keyboard special keys -- key numbers so you can use MIDI keys for common functions
+        // while playing.
         this._recordKey = 0;
-        this._finishStartKey = 0;
+        this._recordNextKey = 0;
         this._stopKey = 0;
         this._playKey = 0;
         this._rewindKey = 0;

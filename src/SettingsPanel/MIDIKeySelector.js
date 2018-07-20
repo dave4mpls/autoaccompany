@@ -6,9 +6,11 @@
 import React from 'react';
 import { SettingsStorage } from '../SettingsPanel/Settings.js';
 import { SettingComponent } from '../SettingsPanel/SettingComponent.js';
+import { PianoKeyboard } from '../PianoKeyboard/PianoKeyboard.js';
 
 // uses popups
 import Popup from "reactjs-popup";
+import '../PopupStyles.css';
 
 // MIDI related imports
 import { AAPlayer } from '../MIDI/AAPlayer.js';
@@ -20,29 +22,31 @@ export class MIDIKeySelector extends SettingComponent {
         this.state = { open: false, 
             settingProperty: this.props.settingName,
             settingValue: SettingsStorage.getSetting(this.props.settingName) };
+        this.playerHandler = null;
+        this.playerHandlerEnd = null;
     }
 
     handleClick() {  
         // User clicked the note display: pop up the popup.
-        // Set up the listener that listens for the MIDI note too.
+        // Set up the listener that listens for the MIDI/screen-key note too.
         this.openPopup();
         let thisObject = this;
-        AAPlayer.onmidideviceinput = function(message) {
-            //-- received midi message: is it NoteOn?
-            if ((message.data[0] & 0xF0) === 0x90) {
-                //-- it was note on: get the note, put it in settings and display state,
-                //-- and close the dialog, which also turns off the midi listener.
-                if (thisObject.props.playNote) {
-                    //-- there is a prop that makes this play the actual note.
-                    AAPlayer.noteOn(0, message.data[1], 127, 0);
-                    AAPlayer.noteOff(0, message.data[1], 0.25);
-                }
-                SettingsStorage.putSetting(thisObject.props.settingName, message.data[1]);
-                thisObject.closePopup();
+        thisObject.playerHandler = AAPlayer.attachEventHandler("onInputNoteOn", function(noteObj) {
+            if (thisObject.props.playNote) {
+                //-- there is a prop that makes this play the actual note.
+                AAPlayer.noteOn(0, noteObj.noteNumber, 127, 0);
+                AAPlayer.noteOff(0, noteObj.noteNumber, 0.25);
             }
-            else    // not note on... ignore
-                return false;
-        }
+            AAPlayer.preventDefault();
+            SettingsStorage.putSetting(thisObject.props.settingName, noteObj.noteNumber);
+        });
+        thisObject.playerHandlerEnd = AAPlayer.attachEventHandler("onInputNoteOff", function(noteObj) {
+            // we don't close the popup until the user lets GO of the note, especially for when
+            // it is a screen keyboard note, because in that case closing the popup when their
+            // finger is down will lead to the keyboards underneath being played.
+            AAPlayer.preventDefault();
+            thisObject.closePopup();
+        })
     }
 
     handleCloseNoChange() {
@@ -63,7 +67,14 @@ export class MIDIKeySelector extends SettingComponent {
     closePopup() {
         this.setState( {open: false} );
         //-- WHENEVER the poppup is closed we MUST turn off the midi listener!
-        AAPlayer.onmidideviceinput = null;
+        if (this.playerHandler) {
+            AAPlayer.removeEventHandler("onInputNoteOn", this.playerHandler);
+            this.playerHandler = null;
+        }
+        if (this.playerHandlerEnd) {
+            AAPlayer.removeEventHandler("onInputNoteOff", this.playerHandlerEnd);
+            this.playerHandlerEnd = null;
+        }
     }
 
     render() {
@@ -78,8 +89,12 @@ export class MIDIKeySelector extends SettingComponent {
             <Popup 
                     open={this.state.open} 
                     closeOnDocumentClick={true} 
+                    contentStyle={{ width: "90%" }}
                     onClose={()=>this.closePopup()} >
                 <div className="modal">
+                <a className="popup-close-button" onClick={()=>this.closePopup()}>
+                  &times;
+                </a>
                 <h4>Select which piano keyboard key is the: { this.props.settingLongName}</h4>
                 <div className="settings-key-description">{ this.props.settingDescription }</div>
                 <div className="settings-press-key">Press the MIDI/piano key you want now.
@@ -94,7 +109,14 @@ export class MIDIKeySelector extends SettingComponent {
                 </button><br />
                 <button className="settings-popup-button" onClick={()=>this.handleCloseNoChange()}>
                 Close without changing the key
-                </button>
+                </button><br />
+                <PianoKeyboard 
+                    player={ AAPlayer }
+                    channel={0}
+                    minNote={36} 
+                    maxNote={89} 
+                    percentScreenHeight={15} 
+                    id={5} />
                 </div>
             </Popup>
             </span>

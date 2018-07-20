@@ -1,0 +1,26 @@
+.fill-remainder-container-row {
+    display: flex;
+    height: 100%; 
+    width: 100%;
+    left: 0px;
+    top: 0px;
+    position: relative;
+    flex-direction: column;
+    -ms-flex-direction: column;
+    -webkit-flex-direction: column;
+    background-color: #e0e0e0;
+}
+
+.fill-remainder-container-column {
+    display: flex;
+    height: 100%; 
+    width: 100%;
+    left: 0px;
+    top: 0px;
+    position: relative;
+    flex-direction: row;
+    -ms-flex-direction: row;
+    -webkit-flex-direction: row;
+    background-color: #e0e0e0;
+}
+

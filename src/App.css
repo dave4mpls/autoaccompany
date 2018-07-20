@@ -1,26 +1,23 @@
 .App {
   text-align: center;
-  display: flex;
   height: 100%; 
   width: 100%;
   left: 0px;
   top: 0px;
   position: absolute;
-  flex-direction: column;
   background-color: #e0e0e0;
-  border: thin solid blue;
 }
+
 
 .App-top {
   flex: 1 1 100%;
   overflow: hidden;
-  border: thin solid orange;
-
+  width: 100%;
 }
 
 .App-bottom {
-  flex: 1 1 50vh;
-  border: thin solid red;
+  flex: 1 1 5vh;
+  width: 100%;
 }
 
 

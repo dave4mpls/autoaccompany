@@ -19,11 +19,13 @@ import { SettingsCaptionCell, SettingsValueCell } from './SettingsPanel.js';
 //      the text placed in the "display" style of the enclosing div.
 //  rowLabel.  If existent, this is rendered as a table row with two cells, with the row
 //      label being in the first cell, similar to SettingsRow.
+//  style.  If exists, styles the component.
 //
 export class HiddenSettingsArea extends SettingComponent {
     static defaultProps = { 
         showFunction: ((t) => t),
-        showType: "" 
+        showType: "",
+        style: { }
     }; 
 
     constructor(props) {
@@ -40,8 +42,9 @@ export class HiddenSettingsArea extends SettingComponent {
     render() {
         let shouldShow = 
             this.props.showFunction(this.state.settingValue);
+        let displayStyle = JSON.parse(JSON.stringify(this.props.style));
         let calculatedDisplayStyle = (shouldShow ? this.props.showType : "none");
-        let displayStyle = { display: calculatedDisplayStyle };
+        displayStyle.display = calculatedDisplayStyle;
         if (this.props.hasOwnProperty("rowLabel")) {
             return (
                 <tr style={displayStyle}>

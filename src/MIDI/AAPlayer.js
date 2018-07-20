@@ -6,6 +6,7 @@
 
 import MIDI from 'midi_drums';
 import { SettingsStorage } from '../SettingsPanel/Settings.js';
+import { EventHandler } from '../EventHandler.js';
 
 class AAPlayerClass {
 
@@ -15,12 +16,17 @@ class AAPlayerClass {
         thisObject.MIDI_DRUM_CHANNEL = 9;
         thisObject.MIDI_DEFAULT_KEYBOARD_CHANNEL = 0;
         // Hooks for other routines listening to MIDI messages
-        thisObject.onmidideviceinput = null;
-            // ^ If thisObject is a function, it gets called as soon as an EXTERNAL midi message comes in.
+        this.preventDefaultFlag = false;
+        thisObject.events = new EventHandler();
+        thisObject.events.addEventMethods(thisObject, thisObject.events);
+            // Events:
+            // onMidiDeviceInput: it gets called as soon as an EXTERNAL midi message comes in.
             // The message is passed.  If the function returns false, the regular midi processing
             // and playing is NOT done (the midi input handler just returns).  If the function
             // returns true, the regular midi input handler is also run (leading to playing, recording,
             // etc.)
+            // onInputNoteOn: it gets called when a screen keyboard key is pressed
+            // onInputNoteOff: it gets called when a screen keyboard key is released
 
         // Internal state
 
@@ -28,10 +34,8 @@ class AAPlayerClass {
         thisObject.handleMIDIDeviceInput = function (message) {
             //console.log(message.target.id +": " + JSON.stringify(message.data));; // debugging
             // -- if callers have set up custom midi handler, run it now 
-            if (thisObject.onmidideviceinput) {
-                let r = thisObject.onmidideviceinput(message);
-                if (!r) return;  // if false return value, we don't process the message normally
-            }
+            let r = thisObject.fireEvent("onMidiDeviceInput", message);
+            if (r) return;      // this handles the prevent default option
 
             // -- now: regular midi device input handling
             let data = message.data;
@@ -105,10 +109,18 @@ class AAPlayerClass {
         }
 
         thisObject.sendInputNoteOn = function(channel, noteNumber, velocity, inputSource = "internal") {
+            if (thisObject.fireEvent("onInputNoteOn",
+                    {channel: channel, noteNumber: noteNumber, 
+                    velocity: velocity, inputSource: inputSource}))
+                return;
             if (!SettingsStorage.getSetting("playNotesFromMIDI") && inputSource !== "internal") return;
             thisObject.noteOn(channel, noteNumber, velocity, 0);
         }
         thisObject.sendInputNoteOff = function(channel, noteNumber, inputSource = "internal") {
+            if (thisObject.fireEvent("onInputNoteOff",
+                    {channel: channel, noteNumber: noteNumber, 
+                    inputSource: inputSource}))
+                return;
             if (!SettingsStorage.getSetting("playNotesFromMIDI") && inputSource !== "internal") return;
             thisObject.noteOff(channel, noteNumber, 0);
         }

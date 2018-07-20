@@ -9,6 +9,7 @@ export class EventHandler {
         let thisObject = this;
         this.notifications = { };
         this.inNotification = [ ];  // tracks notifications we are currently inside of so we don't recurse them
+        this.preventDefaultFlag = false;
 
         // Internal routines.
         this.makeKey = function(eventName, propertyName) {
@@ -52,6 +53,7 @@ export class EventHandler {
             // Ignores exceptions in the event routines.
             // And don't call a particular handler if we're actually inside that same handler.
             let key = thisObject.makeKey(eventName, propertyName);
+            thisObject.preventDefaultFlag = false;
             thisObject.createListIfNeeded(key);
             let currentEventArray = thisObject.notifications[key];
             for (let i = 0; i < currentEventArray.length; i++) { 
@@ -59,6 +61,54 @@ export class EventHandler {
                     thisObject.inNotification.push(currentEventArray[i]);
                     try { currentEventArray[i](param); } catch(e) { }
                     thisObject.inNotification.pop();
+                }
+            }
+        }
+
+        this.preventDefault = function () {
+            thisObject.preventDefaultFlag = true;
+        }
+
+        this.addEventMethods = function(o, oevent, prefix = "", includeProperties = false) {
+            // Adds event-handler methods to the object o, relating to its event object
+            // (this class) oevent, and with the given prefix, so that the object can have
+            // a consistent API for callers to use to attach events, or for itself to
+            // fire events.  Set includeProperties to true for the full, properties-based version,
+            // or to false for the version with only event names, which is more common.
+            if (includeProperties) {
+                // PROPERTIES VERSION
+                o[prefix + "attachEventHandler"] = function(eventName, propertyName, eventHandler) {
+                    return oevent.addEventHandler(eventName, propertyName, eventHandler);
+                }
+                o[prefix + "removeEventHandler"] = function(eventName, propertyName, eventHandler) {
+                    oevent.removeEventHandler(eventName, propertyName, eventHandler);
+                }
+                o[prefix + "preventDefault"] = function() {
+                    oevent.preventDefault();
+                }
+                o[prefix + "fireEvent"] = function(eventName, propertyName, parm) {
+                    oevent.callHandlers(eventName, propertyName, parm);
+                    let r = oevent.preventDefaultFlag;
+                    oevent.preventDefaultFlag = false;
+                    return r;
+                }
+            }
+            else {
+                // NON-PROPERTIES VERSION
+                o[prefix + "attachEventHandler"] = function(eventName, eventHandler) {
+                    return oevent.addEventHandler(eventName, "*", eventHandler);
+                }
+                o[prefix + "removeEventHandler"] = function(eventName, eventHandler) {
+                    oevent.removeEventHandler(eventName, "*", eventHandler);
+                }
+                o[prefix + "preventDefault"] = function() {
+                    oevent.preventDefault();
+                }
+                o[prefix + "fireEvent"] = function(eventName, parm) {
+                    oevent.callHandlers(eventName, "*", parm);
+                    let r = oevent.preventDefaultFlag;
+                    oevent.preventDefaultFlag = false;
+                    return r;
                 }
             }
         }

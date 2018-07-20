@@ -8,6 +8,7 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
+import { FillRemainderPanel } from './FillRemainderPanel/FillRemainderPanel.js';
 
 // MIDI related imports
 import { AAPlayer } from './MIDI/AAPlayer.js';
@@ -87,12 +88,10 @@ class App extends Component {
       // regular rendering of the app
       return (
         <div className="App">
-          <div className = "App-top">
+          <FillRemainderPanel direction="row" sizes={ ["100%", "5vh"]}>
             <RecordingArea />
-          </div>
-          <div className = "App-bottom">
             <InstrumentTabs />
-          </div>
+          </FillRemainderPanel>
         </div>
       );
     }

@@ -7,6 +7,7 @@
 // MIDI related imports
 import { AAPlayer } from '../MIDI/AAPlayer.js';
 import { AutoAccompanySettings } from './AutoAccompany.js';
+import { EventHandler } from '../EventHandler.js';
 
 export class Note {
     //-- note types available for use with notes
@@ -72,7 +73,7 @@ export class Track {
     // and auto-accompaniment modifications.
 
     // general constants
-    static TR_RECORD_ANY_CHANNEL = -1;
+    static TR_PLAYBACK_ORIGINAL_CHANNEL = -1;
 
     //-- track: has record and playback methods and maintains storage for a track.
     //
@@ -93,7 +94,6 @@ export class Track {
         this.versionNumber = 0;     // increases each time the track is changed; can be used
                                     // in React state to ensure proper updates.
         this.instrument = 0;   
-        this.repeat = false;        // tracks can be repeating or non-repeating
         this.recordToChannel = Track.TR_RECORD_ANY_CHANNEL;  
                 // if 0-15, forces all messages to the given channel
         this.notes = [ ];       // actual note events
@@ -101,6 +101,10 @@ export class Track {
 
         this.mute = false;      // if true, track is muted
         this.soloMute = false;      // if true, this track is temporarily muted because another is soloing
+        this.playbackChannel = this.TR_PLAYBACK_ORIGINAL_CHANNEL;
+                                // tracks record the original incoming channel; but you can
+                                // and often do play them back on one particular channel.
+                                // Choices are 0-15 or TR_PLAYBACK_ORIGINAL_CHANNEL.
 
         this.playIndex = 0;     // where we are in the playback note list, during playback.
         this.seekPosition = 0;  // the seek position we are at, in milliseconds
@@ -108,18 +112,19 @@ export class Track {
         //--- track playback works with auto-accompaniment settings
         this.autoAccompany = new AutoAccompanySettings();
 
-        //--- properties relating to events
-        this.callOnChangeOnRecord = false;  // does recording a note call the on-change event?
-
         //--- hooks for other routines to link into the record/playback process
-        this.onNotePlayed = null;   // hook for playback (called with track object and note object).
-        this.onNoteRecorded = null; // hook for recording (called with track and new note)
-        this.onPaused = null;       // hook for pausing (parameter: track)
-        this.onPlaybackStarted = null;  // for starting playback (parameter: track)
-        this.onPlaybackEnded = null;    // for ending playback  (parameter: track)
-        this.onRecordingStarted = null; // for starting recording (parameter: track)
-        this.onRecordingEnded = null;   // for ending recording (parameter: track)
-        this.onChange = null;       // anytime the track changes its data through setProperty, recording (if callOnChangeOnRecord is set), adding notes, etc.
+        this.events = new EventHandler();
+        this.events.addEventMethods(this, this.events);
+
+        //--- recognized hooks include:  
+        // onNotePlayed        : hook for playback (called with track object and note object).
+        // onNoteRecorded      : hook for recording (called with track and new note)
+        // onPaused            : hook for pausing (parameter: track)
+        // onPlaybackStarted   : for starting playback (parameter: track)
+        // onPlaybackEnded     : for ending playback  (parameter: track)
+        // onRecordingStarted  : for starting recording (parameter: track)
+        // onRecordingEnded    : for ending recording (parameter: track)
+        // onChange            : anytime the track changes its data through setProperty, recording (if callOnChangeOnRecord is set), adding notes, etc.
     }
     getNextId() {
         this.nextId+=10;    // we skip by 10's like old school BASIC, to allow insertions.
@@ -133,7 +138,7 @@ export class Track {
         // and calls onChange.
         this[p] = x;
         this.versionNumber++;
-        if (this.onChange) this.onChange(this);
+        this.fireEvent("onChange", this);
     }
 
     startRecording() {
@@ -141,7 +146,13 @@ export class Track {
         this.downNotes = { };  // clear the down-notes array
         this.startTime = performance.now();
         this.lastTime = this.startTime;
-        if (this.onRecordingStarted) this.onRecordingStarted(this);
+        this.fireEvent("onRecordingStarted", this);
+    }
+
+    eraseAllEvents() {
+        this.downNotes = { };
+        this.notes = [ ];
+        this.fireEvent("onChange", this);
     }
 
     addEvent(noteType, channel, noteNumber, velocity, extra, delta, duration) {
@@ -151,7 +162,7 @@ export class Track {
         let id = this.getNextId();
         let n = new Note(id, noteType, channel, noteNumber, velocity, extra, delta, duration);
         this.notes.push(n);
-        if (this.onChange) this.onChange(this);
+        this.fireEvent("onChange", this);
         return n;
     }
 
@@ -167,9 +178,6 @@ export class Track {
         let currentTime = performance.now();
         let delta = currentTime - this.lastTime;
         if (eventType !== Note.NT_NOTE_OFF) this.lastTime = currentTime;
-        // next, get actual channel to record to
-        if (this.recordToChannel !== Track.TR_RECORD_ANY_CHANNEL)
-            channel = this.recordToChannel;
         // determine note signature for down-note hash
         let noteSig = channel + ":" + noteNumber;
         
@@ -184,8 +192,7 @@ export class Track {
         else {
             //-- all non-note-off events: create new note/event
             let newNote = this.addEvent(eventType, channel, noteNumber, velocity, extra, delta, 0);
-            if (this.onNoteRecorded) this.onNoteRecorded(this, newNote);
-            if (this.callOnChangeOnRecord && this.onChange) this.onChange(this);
+            this.fireEvent("onNoteRecorded", {track: this, note: newNote});
             if (eventType === Note.NT_NOTE_ON) {
                 // for note-on, we have to save a down-note so we can determine note duration later.
                 let newDownNote = new DownNote(newNote, currentTime);
@@ -208,6 +215,21 @@ export class Track {
         //-- Call this when you stop recording.
         this.turnOffAllNotes();
     }
+
+    indexOf(elapsedTime) {
+        //-- Walks through the song until you get to elapsed time, and returns [index, 0] for
+        //   the index of the note that plays at that time (handles repeats too).
+        //   If there is no note at that exact time, returns the first note after that time,
+        //   as the first element of the returned array, and the number of milliseconds until
+        //   that note will play, as the second element.
+        //   If that time will never play because the track is too short, returns [-1, duration].
+        //   If the elapsed time is invalid (e.g. negative), return [-1,-1].
+        //   It is assumed that if you seek to this position and play it, you will call play with
+        //   waitFirstDelta set to false, so the note sounds immediately.
+        if (elapsedTime < 0) return [-1,-1];  // invalid
+
+    }
+    
 
     duration(allCyclesFlag) {
         //-- The duration property returns the length of the track.  If allCyclesFlag is false, it
