@@ -10,50 +10,68 @@ import { AutoAccompanySettings } from './AutoAccompany.js';
 import { EventHandler } from '../EventHandler.js';
 
 export class Note {
+    // general constants
+    static NT_PLAYBACK_ORIGINAL_CHANNEL = -1;
+
     //-- note types available for use with notes
+    //   these note types are handled by the note play function:
     static NT_NOTE = "note";  // regular note type
-    static NT_MIDI = "midi_message";  // raw midi message (stored in noteNumber, velocity, extra).
-    static NT_PROGRAM_CHANGE = "program_change";
-    static NT_PITCH_BEND = "pitch_bend";
+    static NT_MIDI = "midi message";  // raw midi message (stored in noteNumber, velocity, extra).
+    static NT_PROGRAM_CHANGE = "instrument change";
+    static NT_PITCH_BEND = "pitch bend";
+    //  these note types are only used by the track
+    static NT_WAIT = "wait";        // the deltas are stored here, just called "wait" (duration contains the ms time to wait)
+    static NT_CHORD_SYMBOL = "chord symbol";   // useful later on for indicating chords! extra contains the textual chord symbol.
+    static NT_BEAT = "beat";        // recording tapping on pedal in order to more clearly know the beat for certain musical tasks
+    static NT_BAR = "bar";          // calculated barline, inserted before the downbeat during bar calculation.
+    static NT_REPEAT = "repeat from"    // extra contains the ID (NOT the index) to repeat from.  duration contains the # of times to repeat. 
 
     //-- note on and note off are NOT stored separately, but they are sent separately to
     //   the track's recording method, which then measures and stores note duration.
     static NT_NOTE_ON = "note_on";
     static NT_NOTE_OFF = "note_off";
 
-    constructor(id, noteType, channel, noteNumber, velocity, extra, delta, duration) {
+    constructor(id, noteType, channel, noteNumber, velocity, extra, duration) {
         this.id = id;
-        this.channel = 0;
         this.noteType = noteType;
         this.channel = channel;
         this.noteNumber = noteNumber;
         this.velocity = velocity;
         this.extra = extra;
-        this.delta = delta;
         this.duration = duration;
     }
 
-    play() {
+    clone() {
+        // returns a clone of this note.
+        let n2 = new Note(this.id, this.noteType, this.channel, this.noteNumber, this.velocity,
+            this.extra, this.duration);
+        return n2;
+    }
+
+    play(overrideChannel, speed = 100.0) {
         //-- Plays this one event, right now, returning immediately (i.e. if it's a note, it will
         //-- turn off at some future point asynchronously).
+        let myChannel = this.channel, myNoteNumber = this.noteNumber, myVelocity = this.velocity;
+        if (overrideChannel && overrideChannel !== this.NT_PLAYBACK_ORIGINAL_CHANNEL) {
+            myChannel = overrideChannel;
+        }
         switch (Note.noteType) {
             case this.NT_NOTE:
-                let myChannel = this.channel, myNoteNumber = this.noteNumber, myVelocity = this.velocity;
                 AAPlayer.noteOn(myChannel, myNoteNumber, myVelocity, 0);
                 setTimeout(function() {
                     AAPlayer.noteOff(myChannel, myNoteNumber, 0);
-                }, this.duration);
+                }, this.duration * 100.0 / speed);
                 break;
             case Note.NT_PROGRAM_CHANGE:
                 let instrumentNumber = this.noteNumber;
                 instrumentNumber &= 0x7F;
-                AAPlayer.programChange(this.channel, instrumentNumber);
+                AAPlayer.programChange(myChannel, instrumentNumber);
                 break;
             case Note.NT_PITCH_BEND:
-                AAPlayer.pitchBend(this.channel, this.noteNumber);
+                AAPlayer.pitchBend(myChannel, this.noteNumber);
                 break;
             case Note.NT_MIDI:
-                AAPlayer.send(this.channel, [this.noteNumber, this.velocity, this.extra]);
+                AAPlayer.send(myChannel, [this.noteNumber, this.velocity, this.extra]);
                 break;
             default:
                 break;      
@@ -72,9 +90,6 @@ export class Track {
     // A recording and playback track.  Contains all methods pertaining to recording, playback,
     // and auto-accompaniment modifications.
 
-    // general constants
-    static TR_PLAYBACK_ORIGINAL_CHANNEL = -1;
-
     //-- track: has record and playback methods and maintains storage for a track.
     //
     // note: this is a mutable object.  To make it work with react, make sure to use
@@ -83,87 +98,131 @@ export class Track {
     // a version number is an immutable object that changes whenever the track changes.
     // Track also has an onChange event, which you can tie to updating the state in your react component
     // whenever anything changes about the track.
+    //
+
+    //--- track types
+        // some tracks are chord tracks, some are rhythm tracks (barlines),
+        // and some are regular tracks.  They are all part of a song object.
+        // The chord tracks track only the chord changes (inputted via the
+        // accompaniment keyboard, or manually).  The rhythm track tracks
+        // the barlines for all tracks as some of them may repeat and fade
+        // in or out (tracks don't HAVE to start at the beginning).
+    static TR_REGULAR = "regular track";
+    static TR_CHORD = "chord change track";
+    static TR_RHYTHM = "rhythm track";
+
     constructor() {
+
+        //--- determine unique track ID for local storage index
+        
+
         //--- internal properties
-        this.downNotes = { };  // notes that are down during recording
-        this.startTime = 0;
-        this.lastTime = 0;
-        this.nextId = 0;
+        this._downNotes = { };  // notes that are down during recording
+        this._startTime = 0;
+        this._lastTime = 0;
 
         //--- basic data of the track
-        this.versionNumber = 0;     // increases each time the track is changed; can be used
-                                    // in React state to ensure proper updates.
-        this.instrument = 0;   
-        this.recordToChannel = Track.TR_RECORD_ANY_CHANNEL;  
-                // if 0-15, forces all messages to the given channel
-        this.notes = [ ];       // actual note events
-        this.beats = [ ];        // beats: each one a time when 
+        this._instrument = 0;   
+        this._notes = [ ];       // actual note events
 
-        this.mute = false;      // if true, track is muted
-        this.soloMute = false;      // if true, this track is temporarily muted because another is soloing
-        this.playbackChannel = this.TR_PLAYBACK_ORIGINAL_CHANNEL;
+        this._mute = false;      // if true, track is muted
+        this._soloMute = false;      // if true, this track is temporarily muted because another is soloing
+        this._playbackChannel = Note.NT_PLAYBACK_ORIGINAL_CHANNEL;
                                 // tracks record the original incoming channel; but you can
                                 // and often do play them back on one particular channel.
                                 // Choices are 0-15 or TR_PLAYBACK_ORIGINAL_CHANNEL.
+        this._trackType = Track.TR_REGULAR;
+        this._speed = 100;      // speed of playback as a percent of normal speed.
+                                // Note: recording is always done with realtime time measurements.
+                                // Then if you play it back again it will play back at the new speed.
+        this._name = "";        // you can name a track if you want.
 
-        this.playIndex = 0;     // where we are in the playback note list, during playback.
-        this.seekPosition = 0;  // the seek position we are at, in milliseconds
+        this._playIndex = 0;     // where we are in the playback note list, during playback.
+        this._seekPosition = 0;  // the seek position we are at, in milliseconds
+        this._repeatCounts = { };   // when repeating, we need to count down # of repeats.
+        this._indexOfRemainingTime = 0; // used by the indexOf routine
+        this._stopFlag = false; // stop() sets it true to tell asynch playback routines to stop
+
+        //--- flags to support the caller's isRecording() and isPlaying() functions
+        this._isRecording = false;
+        this._isPlaying = false;
 
         //--- track playback works with auto-accompaniment settings
-        this.autoAccompany = new AutoAccompanySettings();
+        this._autoAccompany = new AutoAccompanySettings();
 
         //--- hooks for other routines to link into the record/playback process
         this.events = new EventHandler();
-        this.events.addEventMethods(this, this.events);
+        this.events.addEventMethods(this, this._events);
+        this._versionNumber = 0;     // increases each time the track is changed; can be used
+                                    // in React state to ensure proper updates.
+        this.attachEventHandler("onChange",function(t) {
+            t._versionNumber++;
+            // Since this onChange handler is attached first, the caller's onChange handler
+            // will get the new version number.
+        });
 
         //--- recognized hooks include:  
         // onNotePlayed        : hook for playback (called with track object and note object).
         // onNoteRecorded      : hook for recording (called with track and new note)
-        // onPaused            : hook for pausing (parameter: track)
         // onPlaybackStarted   : for starting playback (parameter: track)
         // onPlaybackEnded     : for ending playback  (parameter: track)
         // onRecordingStarted  : for starting recording (parameter: track)
         // onRecordingEnded    : for ending recording (parameter: track)
         // onChange            : anytime the track changes its data through setProperty, recording (if callOnChangeOnRecord is set), adding notes, etc.
-    }
-    getNextId() {
-        this.nextId+=10;    // we skip by 10's like old school BASIC, to allow insertions.
-                            // ID only exists so that we can sort and re-sort the data in a spreadsheet
-                            // during editing.  Of course the spreadsheet, handsontable, will not affect
-                            // the original data, so we don't need to sort before playback.
-        return this.nextId;
+        // onChordChange       : whenever a chord-change note is played (parameter: object with track, note)
+        // onBeat              : whenever a beat signal is played (parameter: object with track, note)
     }
     setProperty(p, x) {
         // sets a property and increases the version number (see comments at start of Track)
         // and calls onChange.
-        this[p] = x;
-        this.versionNumber++;
+        this["_" + p] = x;
+        this._versionNumber++;
         this.fireEvent("onChange", this);
+    }
+    getProperty(p) {
+        // outsiders must call this to get a property.
+        return this["_"+p];
     }
 
     startRecording() {
         // Call this at the beginning of recording.
-        this.downNotes = { };  // clear the down-notes array
-        this.startTime = performance.now();
-        this.lastTime = this.startTime;
+        this._downNotes = { };  // clear the down-notes array
+        this._startTime = performance.now();
+        this._lastTime = this._startTime;
+        this._isRecording = true;
         this.fireEvent("onRecordingStarted", this);
     }
 
+    isRecording() {
+        return this._isRecording;
+    }
+
     eraseAllEvents() {
-        this.downNotes = { };
-        this.notes = [ ];
+        this._downNotes = { };
+        this._notes = [ ];
         this.fireEvent("onChange", this);
     }
 
-    addEvent(noteType, channel, noteNumber, velocity, extra, delta, duration) {
+    assignInOrderId(i) {
+        // Used by some of the note-writing routines: Assigns a valid, and preferably
+        // integer, ID number to a newly added/inserted note, so the ID's will be in order.
+        // ID's are used as reference points for REPEATs and in direct editing in spreadsheet
+        // view (which lets you sort the notes different ways-- sorting by ID means "order of
+        // playback").  
+        let previousId = (i > 0 ? this._notes[i-1].id : 0);
+        let nextId = (i < this._notes.length ? this._notes[i+1].id : this._notes[i].id + 200);
+        let currentId = (previousId + nextId) / 2;
+        if (Math.floor(currentId) > previousId && Math.floor(currentId) < nextId) 
+            currentId = Math.floor(currentId);
+        this._notes[i].id = currentId;
+    }
+
+    addEvent(noteType, channel, noteNumber, velocity, extra, duration) {
         //-- adds a note or event manually to the end of the notes list
         //-- you can't add note on or note off events this way-- they are only accepted by the
         //-- realtime recorder, recordEvent, below.
-        let id = this.getNextId();
-        let n = new Note(id, noteType, channel, noteNumber, velocity, extra, delta, duration);
-        this.notes.push(n);
-        this.fireEvent("onChange", this);
-        return n;
+        let n = new Note(0, noteType, channel, noteNumber, velocity, extra, duration);
+        return this.pushNote(n);
     }
 
     recordEvent(eventType, channel, noteNumber, velocity, extra) {
@@ -176,17 +235,21 @@ export class Track {
         // first, handle timestamps.  (Note Off events aren't recorded as separate events so they
         // don't advance the clock.)
         let currentTime = performance.now();
-        let delta = currentTime - this.lastTime;
-        if (eventType !== Note.NT_NOTE_OFF) this.lastTime = currentTime;
+        let delta = currentTime - this._lastTime;
+        if (eventType !== Note.NT_NOTE_OFF) this._lastTime = currentTime;
         // determine note signature for down-note hash
         let noteSig = channel + ":" + noteNumber;
         
+        // record the delta as an NT_WAIT event
+        if (delta >= 0.01) this.addEvent(Note.NT_WAIT, channel, 0, 0, 0, delta);
+
+        // now record the event
         if (eventType === Note.NT_NOTE_OFF) {
             // note-off event is special: it looks back for a note-on and finishes it
-            if (this.downNotes.hasOwnProperty(noteSig)) {
-                let originalDownNote = this.downNotes[noteSig];
+            if (this._downNotes.hasOwnProperty(noteSig)) {
+                let originalDownNote = this._downNotes[noteSig];
                 originalDownNote.note.duration = currentTime - originalDownNote.startTime;
-                delete this.downNotes[noteSig];
+                delete this._downNotes[noteSig];
             }
         }
         else {
@@ -196,7 +259,7 @@ export class Track {
             if (eventType === Note.NT_NOTE_ON) {
                 // for note-on, we have to save a down-note so we can determine note duration later.
                 let newDownNote = new DownNote(newNote, currentTime);
-                this.downNotes[noteSig] = newDownNote;
+                this._downNotes[noteSig] = newDownNote;
             }
         }
     }
@@ -205,130 +268,329 @@ export class Track {
         // Turns off all down notes.  Used at end of track and before repeats.
         // Effectively resolves the duration of any open notes so they end right now.
         let currentTime = performance.now();
-        for (let originalDownNote in this.downNotes) { 
+        for (let originalDownNote in this._downNotes) { 
             originalDownNote.note.duration = currentTime - originalDownNote.startTime;
         }
-        this.downNotes = { };
+        this._downNotes = { };
     }
 
     stopRecording() {
         //-- Call this when you stop recording.
         this.turnOffAllNotes();
+        this._isRecording = false;
+        this.fireEvent("onRecordingEnded", this);
     }
 
-    indexOf(elapsedTime) {
-        //-- Walks through the song until you get to elapsed time, and returns [index, 0] for
-        //   the index of the note that plays at that time (handles repeats too).
-        //   If there is no note at that exact time, returns the first note after that time,
-        //   as the first element of the returned array, and the number of milliseconds until
-        //   that note will play, as the second element.
-        //   If that time will never play because the track is too short, returns [-1, duration].
-        //   If the elapsed time is invalid (e.g. negative), return [-1,-1].
-        //   It is assumed that if you seek to this position and play it, you will call play with
-        //   waitFirstDelta set to false, so the note sounds immediately.
-        if (elapsedTime < 0) return [-1,-1];  // invalid
+    indexOfId(desiredId) {
+        //-- Returns the index in the note array of the given note ID number.
+        //-- Returns -1 if not found.
+        for (let i = 0; i < this._notes.length; i++) {
+            if (this._notes[i].id === desiredId) return i;
+        }
+        return -1;
+    }
 
+    handleRepeatCount(repeatCountObject, id, numberOfRepeats) {
+        // Manages a repeat-count object in order to simplify processing of repeats.
+        // Returns true if the track should repeat, false otherwise.
+        if (numberOfRepeats === Infinity) return true; // always repeat on infinite repeats!
+        if (!repeatCountObject.hasOwnProperty(id)) {
+            // repeat not encountered before; start at the # of repeats
+            repeatCountObject[id] = numberOfRepeats;
+        }
+        let currentRepeats = repeatCountObject[id];
+        if (currentRepeats <= 0) {  // at zero? we must stop repeating!
+            delete repeatCountObject[id];
+            return false;
+        }
+        currentRepeats--;
+        repeatCountObject[id] = currentRepeats;
+        return true;
+    }
+
+    indexOf(desiredElapsedTime) {
+        //-- Walks through the song and locates the index of the exact elapsed time given.
+        //   Follows all repeats.  If elapsedTime is -1, returns the duration of the
+        //   entire tracks instead, or Infinity if it repeats forever.  Returns -1 on
+        //   invalid input, or elapsed time past the end of the track.
+        //   Result is in milliseconds.
+        //   If the index lands exactly at the start of a note, that note's index will be
+        //   returned.  If it is in the middle of an NT_WAIT, you may have to wait the portion
+        //   of remaining time and then start on the next note to get the exact time you wanted.
+        //   You can get the remaining time from the last indexOf call by looking at
+        //   this._indexOfRemainingTime.
+        //
+        if (desiredElapsedTime < 0 && desiredElapsedTime !== -1) return -1;  // invalid
+        let i = 0; let elapsedTime = 0; 
+        let repeatCounts = { };
+        this._indexOfRemainingTime = 0;  // usually this is zero, we just fill it in in the exceptional cases
+        while (true) {
+            if (i >= this._notes.length) {
+                // end of the track: if duration request, return duration;
+                // otherwise, return -1 for error
+                if (desiredElapsedTime === -1) return elapsedTime;
+                else return -1;
+            }
+            if (desiredElapsedTime !== -1 && Math.abs(elapsedTime - desiredElapsedTime) < 0.01) {
+                // got an exact match (allowing for floating point errors)
+                return i;
+            }
+            let thisNote = this._notes[i];
+            switch (thisNote.noteType) {
+                case Note.NT_WAIT:
+                    // Most time is enveloped in NT_WAITs (note duration isn't counted).
+                    // See if our elapsed time is within the waiting period.
+                    if (desiredElapsedTime !== -1 && elapsedTime - 0.01 <= desiredElapsedTime 
+                        && desiredElapsedTime <= elapsedTime + thisNote.duration + 0.01) {
+                        this._indexOfRemainingTime = (elapsedTime + thisNote.duration)
+                            - desiredElapsedTime;
+                        return i;
+                    }
+                    elapsedTime += thisNote.duration * 100.0 / this._speed;
+                    i++;
+                    break;
+                case Note.REPEAT:
+                    // We also have to keep an eye out for repeats.  Just like in playback,
+                    // we have to track the counts for each repeat.
+                    if (thisNote.duration === Infinity && desiredElapsedTime === -1)
+                        return Infinity;    // if request is for duration, & we have an infinite repeat, return Infinity.
+                    if (this.handleRepeatCount(repeatCounts, thisNote.id, thisNote.duration)) {
+                        // The handle-repeat-count routine says we repeat again, so do it.
+                        i = this.indexOfId(thisNote.extra);
+                        if (i < 0) i = thisNote.length;  // end the song if repeat is invalid
+                    }
+                    else
+                        i++;
+                    break;
+                default:
+                    // all other events, we just advance to the next ones.
+                    // (Notes are considered to be "start playing" commands and have no duration.)
+                    i++;
+                    break;
+            }
+        }
     }
     
-
-    duration(allCyclesFlag) {
-        //-- The duration property returns the length of the track.  If allCyclesFlag is false, it
-        //-- returns the length of all the notes, ignoring repeat instructions.  If allCyclesFlag is true,
-        //-- it returns the actual length of playback, meaning, for tracks that end in REPEAT, it will return
-        //-- Infinity.  (To find the duration of a song, you find the duration of the longest track that 
-        //-- is non-repeating.)
-        let totalDelta = 0; let hasRepeat = this.repeat; let lastDuration = 0;
-        for (var i = 0; i < this.notes.length; i++) {
-            totalDelta += this.notes[i].delta;
-            if (this.notes[i].noteType === Note.NT_NOTE) lastDuration = this.notes[i].duration;
-        }
-        if (allCyclesFlag && hasRepeat)
-            return Infinity;
-        else    
-            return totalDelta + lastDuration;
+    duration() {
+        // Returns the duration of the track in milliseconds.
+        // May return Inifinity if there are any infinite repeats.
+        return this.indexOf(-1);
     }
 
     rewind() {
         //-- Call this to rewind to the beginning of the track.
-        this.playIndex = 0;
-        this.seekPosition = 0;
-    }
-
-    indexAt(newPosition) {
-        // TODO: needs fixed up
-        // returns [note index, delta to wait to play note] for a given song position in ms.
-        // returns [-1,-1] if newPosition is past the end of the track.
-        if (newPosition < 0) return [-1,-1];
-        if (newPosition === 0) return 0.0;
-        //--- find a position equal to or just past the desired start time
-        let startIndex = 0;
-        let deltaSoFar = 0;
-        while (deltaSoFar < newPosition) {
-            deltaSoFar += this.notes[startIndex].delta;
-            startIndex++;
-            if (startIndex >= this.notes.length) {
-                    startIndex = 1;     // we skip the delta on note 0 for repeats-- it gets played immediately
-                    if (!this.repeat) return -1;  // really did pass the end, so don't play.
-            }
-        }
-        if (deltaSoFar === newPosition) return startIndex;
+        this._playIndex = 0;
+        this._seekPosition = 0;
+        this._repeatCounts = { };
     }
 
     seek(newPosition) {
-        //   TODO: needs fixed up to call indexAt
+        //   Seeks to a given elapsed time and begins playing.
+        //   Returns -1 on error or 0 on success.  Non-blocking (playing is asynchronous).
+        this.rewind();
+        let startIndex = this.indexOf(newPosition);
+        if (startIndex < 0) return -1;
+        this._playIndex = startIndex;  // start playback here.
+        if (this._indexOfRemainingTime > 0) {
+            // We have remaining time on this wait, so advance to the next note.
+            this._playIndex++;
+        }
+        let thisObject = this;
+        // now, asynchronously play the track.
+        setTimeout(function() {
+            thisObject.play();
+        }, this._indexOfRemainingTime);
     }
 
     play() {
-        let thisObject = this;
-        //-- Call this to begin playing back the track, starting at the current index position, with
-        //-- no delay.  Use rewind() first to go to the beginning.
-        let continueLoop = true;
-        let repeatedFlag = false;
-        // we have this iterative loop to handle chords that are played EXACTLY at the same time;
-        // otherwise, notes have deltas between them, so the playing is asynchronous.
-        while (continueLoop) {
-            if (thisObject.notes.length === 0) return;   // going forward let's assume we have notes :-)
-            // Get the note we want, and determine the delta for it, and handle repeats.
-            if (this.playIndex >= thisObject.notes.length) {
-                if (!this.repeat) return;
-                this.playIndex = 0;
-                repeatedFlag = true;
-            }
-            else
-                repeatedFlag = false;
-            let thisEvent = this.notes[this.playIndex];
-            let thisDelta = thisEvent.delta;
-            if (repeatedFlag) thisDelta = 0;
-                //-- note: when we repeat, we do NOT repeat the delta of the first note-- the downbeat
-                //-- of pressing the "end record and repeat" key is the SAME as the first note (i.e. we
-                //-- already waited the appropriate delta as part of THIS repeat note).
-            // Now we have the note we want. Play it now or later, as needed.
-            if (thisDelta === 0) {
-                //-- no delta (as in a chord): play this note right away, then
-                //-- continue around the synchronous, iterative loop to the next note.
-                if (thisObject.onNotePlayed) thisObject.onNotePlayed(thisObject, thisEvent);
-                thisEvent.play();
-                this.playIndex++;
-                this.seekPosition += thisDelta;
-                continueLoop = (this.playIndex < this.notes.length);
-            } else {
-                // but NORMALLY, we set up the note to play later, and then it re-calls
-                // track::play, on the next note, etc.
-                setTimeout(function() {
-                    if (thisObject.onNotePlayed) thisObject.onNotePlayed(thisObject, thisEvent);
-                    thisEvent.play();
-                    thisObject.playIndex++;
-                    thisObject.seekPosition += thisDelta;
-                    thisObject.play();
-                }, thisDelta);
-                continueLoop = false;
+        //-- Plays the track, at the current position (use rewind() first to start from the start).
+        //-- Non-blocking (playback is asynchronous).  Use stop() to stop playback.
+        //-- Always call with no parameters; internalCall is only true internally.
+        this._stopFlag = false;
+        if (this._playbackChannel !== Note.NT_PLAYBACK_ORIGINAL_CHANNEL)
+            AAPlayer.programChange(this._playbackChannel, this._instrument);
+        this._isPlaying = true;
+        this.fireEvent("onPlaybackStarted",this);
+        this._internal_play();
+    }
+
+    isPlaying() {
+        return this._isPlaying;
+    }
+
+    _internal_play() {
+        //-- internal routine used to implement play(), above.
+        while (true) {
+            // We break the loop if and only if the song is over.
+            if (this._stopFlag) break;     // stop requested so stop (don't turn off flag, what if more than one note is playing?)
+            if (this._playIndex >= this._notes.length) break;  // end of song
+            let thisNote = this._notes[this._playIndex];
+            switch (thisNote.noteType) {
+                case Note.NT_WAIT:
+                    // wait: asynchronously call ourselves after the wait is over.
+                    this._playIndex++;
+                    // no closure below: don't want to start filling memory up with
+                    // closure stack frames (not sure if that would happen, but let's be safe).
+                    setTimeout(this._internal_play, thisNote.duration * 100.0 / this._speed);
+                    return;  // NOT break because the song isn't over!
+                case Note.NT_NOTE:
+                case Note.NT_PITCH_BEND:
+                case Note.NT_MIDI:
+                case Note.NT_PROGRAM_CHANGE:
+                    // message that the note can handle itself: have the note handle it.
+                    // Remember to send it the playback channel in case it needs to change the channel.
+                    if ((!this._mute) && (!this._soloMute))
+                        thisNote.play(this._playbackChannel, this._speed);
+                    this._playIndex++;
+                    break;
+                case Note.NT_REPEAT:
+                    if (this.handleRepeatCount(this._repeatCounts, thisNote.id, thisNote.duration)) {
+                        // The handle-repeat-count routine says we repeat again, so do it.
+                        let i = this.indexOfId(thisNote.extra);
+                        if (i < 0) i = this._notes.length;  // end the song if repeat is invalid
+                        this._playIndex = i;
+                    }
+                    else    
+                        this._playIndex++;
+                    break;
+                case Note.NT_CHORD:
+                    // Chord change (a recording of the pressing of accompaniment keys, or
+                    // a manually inserted chord change):
+                    this.fireEvent("onChordChange", {track: this, note: thisNote}); 
+                            // Typically, the song event listens for chord changes and then
+                            // sends them to the auto-accompany objects in all the other tracks.
+                    this._playIndex++;
+                    break;
+                case Note.NT_BEAT:
+                    this.fireEvent("onBeat", {track: this, note: thisNote});
+                    this._playIndex++;  // there is an event fired for each recorded Beat.
+                    break;
+                default:
+                    // ignore other messages, such as bar and beat
+                    // TODO: enable chord symbols to play sounds if a flag is set
+                    this._playIndex++;
+                    break;
             }
         }
+        // While loop is only exited if the song is over.  So that means it's over.
+        this._isPlaying = false;
+        this.fireEvent("onPlaybackEnded", this);
+    }
+
+    stop() {
+        // Stop playback.  Notes currently being played will finish.
+        // You can use stop() as a pause button too, just don't reset the
+        // playback pointer.
+        this._stopFlag = true;
+    }
+
+    stopAll() {
+        // Stop either playback, recording, or both, whichever is happening now.
+        if (this.isPlaying()) this.stop();
+        if (this.isRecording()) this.stopRecording();
+    }
+
+    //
+    //  Routines for getting/putting/inserting/deleting notes.
+    //  Remember, the _notes array is internal, don't use it directly.
+    //
+    getNote(i) {
+        if (i < 0 || i >= this._notes.length) return null;
+        return this._notes[i];
+    }
+
+    putNote(i, n) {
+        if (i < 0) i = 0;
+        if (i >= this._notes.length) 
+            return this.pushNote(n);
+        else
+            this._notes[i] = n; 
+        this.fireEvent("onChange", this);
+        return n;
+    }
+
+    pushNote(n) {
+        this._notes.push(n);
+        this.assignInOrderId(this._notes.length - 1);
+        this.fireEvent("onChange", this);
+        return n;
+    }
+
+    insertNote(i, n) {
+        // Note: If you use insertNote, you can insert one during playback.
+        // Useful for inserting barlines or beats while playing back a track, for example.
+        if (i < 0) i = 0;
+        if (i >= this._notes.length) { return this.pushNote(n);  }
+        if (i <= this._playIndex) this._playIndex++;   // when inserting, move the play index
+        this._notes.splice(i,0,n);
+        // As part of inserting a note, we have to give it an in-order ID #, ideally
+        // an integer (if possible) and between the ID's before and after it.
+        this.assignInOrderId(i);
+        this.fireEvent("onChange",this);
+        return n;
+    }
+
+    deleteNote(i) {
+        // You can delete a note during playback too.
+        if (i < 0 || i >= this._notes.length) return;
+        if (i < this._playIndex) this._playIndex--;  // adjust play index
+        this._notes.splice(i,1);
+        this.fireEvent("onChange", this);
+    }
+
+    //
+    //  Routines for adding and removing barlines, beats, and chord symbols.
+    //  These won't be as needed now because we are putting beats and chords on different tracks,
+    //  but might as well finish them...
+    //
+    deleteNotesOfTypes(typeArray) {
+        // deletes notes matching various types.
+        for (let i = 0; i < this._notes.length; i++) {
+            if (typeArray.indexOf(this._notes[i].noteType) >= 0) {
+                this.deleteNote(i);
+                i--;
+            }
+        }
+    }
+
+    clearBarlines() { this.deleteNotesOfTypes([Note.NT_BAR]) }
+    clearBeats() { this.deleteNotesOfTypes([Note.NT_BEAT]) }
+    clearRhythm() { this.deleteNotesOfTypes([Note.NT_BAR, Note.NT_BEAT]) }
+    clearChords() { this.deleteNotesOfTypes([Note.NT_CHORD_SYMBOL]) }
+
+    addNoteAtElapsedTime(n,desiredElapsedTime) {
+        // Adds a note event at a given elapsed time.
+        let noteIndex = this.indexOf(desiredElapsedTime);
+        if (noteIndex < 0) return null;
+        if (this._notes[noteIndex].noteType === Note.NT_WAIT && this._indexOfRemainingTime !== 0) {
+            // desired elapsed time splits a NT_WAIT element: break it in half.
+            let wn = this._notes[noteIndex].clone();
+            let wnOriginalDuration = wn.duration;
+            this.insertNote(noteIndex, wn);
+            this._notes[noteIndex].duration = wnOriginalDuration - this._indexOfRemainingTime;
+            this._notes[noteIndex+1].duration = this._indexOfRemainingTime;
+            noteIndex++;
+        }
+        return this.insertNote(noteIndex, n);
+    }
+
+    //
+    //  Clone tracks, load tracks from JSON, save tracks to JSON.
+    //
+
+
+}
+
+export class Song {
+    constructor() {
+        this._name = "";
     }
 }
 
 export class TrackStorage {
-    static tracks = [];
+    constructor() {
+        this.songs = [ ];
+    }
 }
 
 export let TrackList = new TrackStorage();

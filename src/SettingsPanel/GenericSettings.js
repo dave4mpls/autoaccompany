@@ -8,6 +8,7 @@ import { SettingComponent } from '../SettingsPanel/SettingComponent.js';
 // Specialized input boxes
 import NumericInput from 'react-numeric-input';     //license: MIT
 import Switch from 'react-switch';   // license: MIT
+import Knob from './Knob.js';   // license: MIT
 
 //
 //  Numeric Setting Box with Up/Down Arrows (based on react-numeric-input)
@@ -68,6 +69,44 @@ export class ToggleSetting extends SettingComponent {
                 onColor='#1890ff'
                 height={16}
                 width={40}
+            />
+        );
+    }
+}
+
+//
+//  Knob Setting 
+//
+export class KnobSetting extends SettingComponent {
+
+    constructor(props) {
+        super(props);
+        this.state = { 
+            settingProperty: this.props.settingName, 
+            settingValue: SettingsStorage.getSetting(this.props.settingName) };
+    }
+
+    handleChange(valueAsNumber) {  
+        // handles change in the setting
+        SettingsStorage.putSetting(this.props.settingName, valueAsNumber);
+    }
+
+    render() {
+        return (
+            <Knob
+                width={60}
+                height={60}
+                lineCap="butt"
+                disableTextInput={true}
+                displayInput={true}
+                min={this.props.min}
+                max={this.props.max}
+                step={this.props.step}
+                value={this.state.settingValue}
+                fgColor="#1890ff"
+                onChange={ (valueAsNumber) => 
+                    this.handleChange(valueAsNumber) }
+                onChangeEnd={ (valueAsNumber) => { } }
             />
         );
     }

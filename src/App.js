@@ -67,6 +67,23 @@ class App extends Component {
         window.SettingsStorage = SettingsStorage;
         window.MTheory = MTheory;
         window.TrackList = TrackList;
+        // we may want to know if we are running under IE
+        window.ie = (function(){
+          var undef,rv = -1; // Return value assumes failure.
+          var ua = window.navigator.userAgent;
+          var msie = ua.indexOf('MSIE ');
+          var trident = ua.indexOf('Trident/');
+      
+          if (msie > 0) {
+              // IE 10 or older => return version number
+              rv = parseInt(ua.substring(msie + 5, ua.indexOf('.', msie)), 10);
+          } else if (trident > 0) {
+              // IE 11 (or newer) => return version number
+              var rvNum = ua.indexOf('rv:');
+              rv = parseInt(ua.substring(rvNum + 3, ua.indexOf('.', rvNum)), 10);
+          }
+          return ((rv > -1) ? rv : undef);
+        }());
         // finally, set the app state that we are loaded, so the app displays
         myApp.setState({soundsLoaded: true});
       }
@@ -74,6 +91,7 @@ class App extends Component {
   }
 
   render() {
+
     if (!this.state.soundsLoaded) {
       // special rendering situation for sounds not being loaded yet
       return (
@@ -85,10 +103,10 @@ class App extends Component {
         );
       }
     else {
-      // regular rendering of the app
+      // regular rendering of the app -- notice hack for Internet Explorer
       return (
         <div className="App">
-          <FillRemainderPanel direction="row" sizes={ ["100%", "5vh"]}>
+          <FillRemainderPanel direction="row" sizes={ [(window.ie ? "auto" : "100%"), "5vh"]}>
             <RecordingArea />
             <InstrumentTabs />
           </FillRemainderPanel>

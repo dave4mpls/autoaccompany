@@ -7,7 +7,7 @@ import React, { Component } from 'react';
 import { SettingsPanel, SettingsRow } from './SettingsPanel.js';
 
 import { MIDIPortSelector } from './MIDIPortSelector.js';
-import { NumericSetting, ToggleSetting } from './GenericSettings.js';
+import { NumericSetting, KnobSetting, ToggleSetting } from './GenericSettings.js';
 
 export class MIDIHardwareSettings extends Component {
     render() {
@@ -31,11 +31,11 @@ export class MIDIHardwareSettings extends Component {
                 <SettingsRow name="Volume (Velocity)">
                     <SettingsPanel>
                         <SettingsRow name="Minimum Velocity">
-                            <NumericSetting settingName="minVelocity"
+                            <KnobSetting settingName="minVelocity"
                                 min={0} max={127} step={10} />
                         </SettingsRow>
                         <SettingsRow name="Maximum Velocity">
-                            <NumericSetting settingName="maxVelocity"
+                            <KnobSetting settingName="maxVelocity"
                                     min={0} max={127} step={10} />
                         </SettingsRow>
                     </SettingsPanel>

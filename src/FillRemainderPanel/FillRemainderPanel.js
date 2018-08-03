@@ -12,7 +12,6 @@ export class FillRemainderPanel extends Component {
     // Required props: direction (row or column), and sizes (e.g. ["100%","5vh"]) --
     // these are suggested sizes for each child, where 100% means "fill remaining space".
     render() {
-        let containerStyle = { };
         let thisObject = this;
         let itemSizes = this.props.sizes;  // e.g. ["100%","5vh"] -- 100% is the fill-remainder one
         let containerClassName = "fill-remainder-container-" + this.props.direction;
