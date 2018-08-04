@@ -8,83 +8,7 @@
 import { AAPlayer } from '../MIDI/AAPlayer.js';
 import { AutoAccompanySettings } from './AutoAccompany.js';
 import { EventHandler } from '../EventHandler.js';
-
-export class Note {
-    // general constants
-    static NT_PLAYBACK_ORIGINAL_CHANNEL = -1;
-
-    //-- note types available for use with notes
-    //   these note types are handled by the note play function:
-    static NT_NOTE = "note";  // regular note type
-    static NT_MIDI = "midi message";  // raw midi message (stored in noteNumber, velocity, extra).
-    static NT_PROGRAM_CHANGE = "instrument change";
-    static NT_PITCH_BEND = "pitch bend";
-    //  these note types are only used by the track
-    static NT_WAIT = "wait";        // the deltas are stored here, just called "wait" (duration contains the ms time to wait)
-    static NT_CHORD_SYMBOL = "chord symbol";   // useful later on for indicating chords! extra contains the textual chord symbol.
-    static NT_BEAT = "beat";        // recording tapping on pedal in order to more clearly know the beat for certain musical tasks
-    static NT_BAR = "bar";          // calculated barline, inserted before the downbeat during bar calculation.
-    static NT_REPEAT = "repeat from"    // extra contains the ID (NOT the index) to repeat from.  duration contains the # of times to repeat. 
-
-    //-- note on and note off are NOT stored separately, but they are sent separately to
-    //   the track's recording method, which then measures and stores note duration.
-    static NT_NOTE_ON = "note_on";
-    static NT_NOTE_OFF = "note_off";
-
-    constructor(id, noteType, channel, noteNumber, velocity, extra, duration) {
-        this.id = id;
-        this.noteType = noteType;
-        this.channel = channel;
-        this.noteNumber = noteNumber;
-        this.velocity = velocity;
-        this.extra = extra;
-        this.duration = duration;
-    }
-
-    clone() {
-        // returns a clone of this note.
-        let n2 = new Note(this.id, this.noteType, this.channel, this.noteNumber, this.velocity,
-            this.extra, this.duration);
-        return n2;
-    }
-
-    play(overrideChannel, speed = 100.0) {
-        //-- Plays this one event, right now, returning immediately (i.e. if it's a note, it will
-        //-- turn off at some future point asynchronously).
-        let myChannel = this.channel, myNoteNumber = this.noteNumber, myVelocity = this.velocity;
-        if (overrideChannel && overrideChannel !== this.NT_PLAYBACK_ORIGINAL_CHANNEL) {
-            myChannel = overrideChannel;
-        }
-        switch (Note.noteType) {
-            case this.NT_NOTE:
-                AAPlayer.noteOn(myChannel, myNoteNumber, myVelocity, 0);
-                setTimeout(function() {
-                    AAPlayer.noteOff(myChannel, myNoteNumber, 0);
-                }, this.duration * 100.0 / speed);
-                break;
-            case Note.NT_PROGRAM_CHANGE:
-                let instrumentNumber = this.noteNumber;
-                instrumentNumber &= 0x7F;
-                AAPlayer.programChange(myChannel, instrumentNumber);
-                break;
-            case Note.NT_PITCH_BEND:
-                AAPlayer.pitchBend(myChannel, this.noteNumber);
-                break;
-            case Note.NT_MIDI:
-                AAPlayer.send(myChannel, [this.noteNumber, this.velocity, this.extra]);
-                break;
-            default:
-                break;      
-        }
-    }
-}
-
-class DownNote {
-    constructor(noteObject, startTime) {
-        this.note = noteObject;
-        this.startTime = startTime;
-    }
-}
+import { Note, DownNote } from './Note.js';
 
 export class Track {
     // A recording and playback track.  Contains all methods pertaining to recording, playback,
@@ -114,18 +38,17 @@ export class Track {
     constructor() {
 
         //--- determine unique track ID for local storage index
-        
+        this.resetMediaState();
 
-        //--- internal properties
-        this._downNotes = { };  // notes that are down during recording
-        this._startTime = 0;
-        this._lastTime = 0;
+        //--- linkback to song
+        this._song = null;
 
         //--- basic data of the track
         this._instrument = 0;   
         this._notes = [ ];       // actual note events
 
         this._mute = false;      // if true, track is muted
+        this._solo = false;     // solo flag; maintained in track, then used to calculate soloMute when song starts playing all tracks.
         this._soloMute = false;      // if true, this track is temporarily muted because another is soloing
         this._playbackChannel = Note.NT_PLAYBACK_ORIGINAL_CHANNEL;
                                 // tracks record the original incoming channel; but you can
@@ -137,22 +60,12 @@ export class Track {
                                 // Then if you play it back again it will play back at the new speed.
         this._name = "";        // you can name a track if you want.
 
-        this._playIndex = 0;     // where we are in the playback note list, during playback.
-        this._seekPosition = 0;  // the seek position we are at, in milliseconds
-        this._repeatCounts = { };   // when repeating, we need to count down # of repeats.
-        this._indexOfRemainingTime = 0; // used by the indexOf routine
-        this._stopFlag = false; // stop() sets it true to tell asynch playback routines to stop
-
-        //--- flags to support the caller's isRecording() and isPlaying() functions
-        this._isRecording = false;
-        this._isPlaying = false;
-
-        //--- track playback works with auto-accompaniment settings
-        this._autoAccompany = new AutoAccompanySettings();
+        //--- track playback works with auto-accompaniment settings (publicly accessible)
+        this.autoAccompany = new AutoAccompanySettings();
 
         //--- hooks for other routines to link into the record/playback process
         this.events = new EventHandler();
-        this.events.addEventMethods(this, this._events);
+        this.events.addEventMethods(this, this.events);
         this._versionNumber = 0;     // increases each time the track is changed; can be used
                                     // in React state to ensure proper updates.
         this.attachEventHandler("onChange",function(t) {
@@ -172,12 +85,14 @@ export class Track {
         // onChordChange       : whenever a chord-change note is played (parameter: object with track, note)
         // onBeat              : whenever a beat signal is played (parameter: object with track, note)
     }
+    setNoPropertyChangesFlag(f) { this._noPropertyChanges = f; }  // use this to turn off firing of change event on property changes
     setProperty(p, x) {
         // sets a property and increases the version number (see comments at start of Track)
         // and calls onChange.
         this["_" + p] = x;
         this._versionNumber++;
-        this.fireEvent("onChange", this);
+        if (p != "soloMute" && (!(this._noPropertyChanges))) 
+            this.fireEvent("onChange", this);
     }
     getProperty(p) {
         // outsiders must call this to get a property.
@@ -234,6 +149,7 @@ export class Track {
         
         // first, handle timestamps.  (Note Off events aren't recorded as separate events so they
         // don't advance the clock.)
+        if (!this._isRecording) return;  // ignore if we haven't started recording yet
         let currentTime = performance.now();
         let delta = currentTime - this._lastTime;
         if (eventType !== Note.NT_NOTE_OFF) this._lastTime = currentTime;
@@ -279,6 +195,30 @@ export class Track {
         this.turnOffAllNotes();
         this._isRecording = false;
         this.fireEvent("onRecordingEnded", this);
+    }
+
+    clearEndPosition() { this._endPosition = -1; }  // clear the end position, supplied by the song to stop infinite tracks
+    setEndPosition(p) { this._endPosition = p; } // set the end position (used by the song level)
+
+    resetMediaState() {
+        //--- Resets all properties of the track that relate to tracking playback and recording
+        //--- (and which do not specify data that must be saved).
+        //--- internal properties
+        this._downNotes = { };  // notes that are down during recording
+        this._startTime = 0;
+        this._lastTime = 0;
+        this._noPropertyChanges = false;
+        //-- resets all the playback related properties 
+        this._playIndex = 0;     // where we are in the playback note list, during playback.
+        this._seekPosition = 0;  // the seek position we are at, in milliseconds
+        this._endPosition = -1;     // if >=0, the position, supplied by the song, when all tracks (including infinite tracks) should stop.
+        this._repeatCounts = { };   // when repeating, we need to count down # of repeats.
+        this._indexOfRemainingTime = 0; // used by the indexOf routine
+        this._stopFlag = false; // stop() sets it true to tell asynch playback routines to stop
+        this._isPlaying = false;
+        //--- flags to support the caller's isRecording() and isPlaying() functions
+        this._isRecording = false;
+        this._isPlaying = false;
     }
 
     indexOfId(desiredId) {
@@ -341,8 +281,8 @@ export class Track {
                     // Most time is enveloped in NT_WAITs (note duration isn't counted).
                     // See if our elapsed time is within the waiting period.
                     if (desiredElapsedTime !== -1 && elapsedTime - 0.01 <= desiredElapsedTime 
-                        && desiredElapsedTime <= elapsedTime + thisNote.duration + 0.01) {
-                        this._indexOfRemainingTime = (elapsedTime + thisNote.duration)
+                        && desiredElapsedTime <= elapsedTime + thisNote.duration * 100.0 / this._speed + 0.01) {
+                        this._indexOfRemainingTime = (elapsedTime + thisNote.duration * 100.0 / this._speed)
                             - desiredElapsedTime;
                         return i;
                     }
@@ -423,12 +363,14 @@ export class Track {
         while (true) {
             // We break the loop if and only if the song is over.
             if (this._stopFlag) break;     // stop requested so stop (don't turn off flag, what if more than one note is playing?)
-            if (this._playIndex >= this._notes.length) break;  // end of song
+            if (this._playIndex >= this._notes.length) break;  // end of track
+            if (this._endPosition >= 0 && this._endPosition < this._seekPosition) break;  // end of song 
             let thisNote = this._notes[this._playIndex];
             switch (thisNote.noteType) {
                 case Note.NT_WAIT:
                     // wait: asynchronously call ourselves after the wait is over.
                     this._playIndex++;
+                    this._seekPosition += thisNote.duration * 100.0 / this._speed;
                     // no closure below: don't want to start filling memory up with
                     // closure stack frames (not sure if that would happen, but let's be safe).
                     setTimeout(this._internal_play, thisNote.duration * 100.0 / this._speed);
@@ -494,6 +436,25 @@ export class Track {
     //  Routines for getting/putting/inserting/deleting notes.
     //  Remember, the _notes array is internal, don't use it directly.
     //
+    getNoteCount() { return this._notes.length; }
+
+    getChannelsUsed() {
+        // Returns which channels are used in this track.  It will either be the
+        // playback channel, or if that channel is NT_PLAYBACK_ORIGINAL_CHANNEL,
+        // we scan all the notes and return an array of what channels are used.
+        // In any case we return an array of used channels.
+        if (this._playbackChannel !== Note.NT_PLAYBACK_ORIGINAL_CHANNEL) {
+            return [ this._playbackChannel ];  // simple: track all plays back on one channel.
+        }
+        let channelsUsed = [ ];
+        for (let i = 0; i < this._notes.length) {
+            if (channelsUsed.indexOf(this._notes[i].channel) === -1)
+                channelsUsed.push(this._notes[i].channel);
+        }
+        channelsUsed.sort();
+        return channelsUsed;
+    }
+
     getNote(i) {
         if (i < 0 || i >= this._notes.length) return null;
         return this._notes[i];
@@ -577,20 +538,51 @@ export class Track {
     //
     //  Clone tracks, load tracks from JSON, save tracks to JSON.
     //
-
-
-}
-
-export class Song {
-    constructor() {
-        this._name = "";
+    clone() {
+        // Note: Cloning a track does NOT clone the event handlers.  You have to
+        // re-add those to the new track if you want them.
+        let newTrack = new Track();
+        // copy all the main properties, but not the structures
+        for (let thisProperty in this) {
+            if (thisProperty[0] != "_") continue;
+            if (thisProperty == "_notes" || thisProperty == "autoAccompany") continue;
+            newTrack[thisProperty] = this[thisProperty];
+        }
+        // now, clone all the notes
+        for (let i = 0; i < this._notes.length; i++) {
+            newTrack._notes.push(this._notes[i].clone());
+        }
+        // reset the media state
+        newTrack.resetMediaState();
+        // and finally, clone the auto-accompany structure.
+        newTrack.autoAccompany = this.autoAccompany.clone();
+        return newTrack;
     }
-}
-
-export class TrackStorage {
-    constructor() {
-        this.songs = [ ];
+    save() {
+        // For saving a track, all the critical data will be captured with a straight JSON stringify.
+        return JSON.stringify(this);
     }
+    static load(jsonText) {
+        // For loading, we have a static method (so you do let loadedTrack = Track.load(jsonText)).
+        // It is very similar to cloning.
+        let source = JSON.parse(jsonText);      // simple data object (no track methods)
+        let newTrack = new Track();     // new complex track object (but alas, no data)
+        // copy all the main properties, but not the structures
+        for (let thisProperty in source) {
+            if (thisProperty[0] != "_") continue;
+            if (thisProperty == "_notes" || thisProperty == "autoAccompany") continue;
+            newTrack[thisProperty] = source[thisProperty];
+        }
+        // now, create all the notes
+        for (let i = 0; i < source._notes.length; i++) {
+            newTrack._notes.push(Note.load(source._notes[i]));
+        }
+        // reset the media state
+        newTrack.resetMediaState();
+        // and finally, load the auto-accompany structure.
+        newTrack.autoAccompany = AutoAccompanySettings.load(source.autoAccompany);
+        return newTrack;
+    }
+
 }
 
-export let TrackList = new TrackStorage();

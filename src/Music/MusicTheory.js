@@ -36,24 +36,25 @@ export class MTheoryClass {
         };
         thisObject.scales = [
             //--- Common diatonic scales, in order of most likelihood in analyzing a series of notes.
-            ["Major", [0,2,4,5,7,9,11] ],
-            ["Minor (natural)", [0,2,3,5,7,8,10] ],
-            ["Minor (harmonic)", [0,2,3,5,7,8,11] ],
-            ["Blues (six-note)", [0,3,5,6,7,10]],
-            ["Blues (seven-note)", [0,2,3,5,6,7,10]],
-            ["Ionian (1)", [0,2,4,5,7,9,11] ],
-            ["Dorian (2)", [0,2,3,5,7,9,10] ],
-            ["Phyrgian (3)", [0,1,3,5,7,8,10] ],
-            ["Lydian (4)", [0,2,4,6,7,9,11] ],
-            ["Myxolydian (5)", [0,2,4,5,7,9,10] ],
-            ["Aeolian (6)", [0,2,3,5,7,8,10] ],
-            ["Locrian (7)", [0,1,3,5,6,8,10] ],
-            ["Chromatic", [0,1,2,3,4,5,6,7,8,9,10,11]]
+            // First index is internal name to use in the program, second is display name, third is series of note offets making up the scale.
+            ["MAJOR","Major", [0,2,4,5,7,9,11] ],
+            ["MINOR_N","Minor (natural)", [0,2,3,5,7,8,10] ],
+            ["MINOR_H","Minor (harmonic)", [0,2,3,5,7,8,11] ],
+            ["BLUES_6","Blues (six-note)", [0,3,5,6,7,10]],
+            ["BLUES_7","Blues (seven-note)", [0,2,3,5,6,7,10]],
+            ["IONIAN","Ionian (1)", [0,2,4,5,7,9,11] ],
+            ["DORIAN","Dorian (2)", [0,2,3,5,7,9,10] ],
+            ["PHYRGIAN","Phyrgian (3)", [0,1,3,5,7,8,10] ],
+            ["LYDIAN","Lydian (4)", [0,2,4,6,7,9,11] ],
+            ["MYXOLYDIAN","Myxolydian (5)", [0,2,4,5,7,9,10] ],
+            ["AEOLIAN","Aeolian (6)", [0,2,3,5,7,8,10] ],
+            ["LOCRIAN","Locrian (7)", [0,1,3,5,6,8,10] ],
+            ["CHROMATIC","Chromatic", [0,1,2,3,4,5,6,7,8,9,10,11]]
         ];
         thisObject.getScale = function(scaleName) {
-            // Returns the scale by the given name.
+            // Returns the scale by the given internal name.
             for (let i = 0; i < thisObject.scales.length; i++) {
-                if (thisObject.scales[i][0] === scaleName) return thisObject.scales[i][1];
+                if (thisObject.scales[i][0] === scaleName) return thisObject.scales[i][2];
             }
             return [];
         }

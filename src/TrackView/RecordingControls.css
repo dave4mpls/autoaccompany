@@ -10,8 +10,12 @@
     width: 100%;
     font-weight: bold;
     text-align: left;
-    height: 15%;
+    height: 14.29%;     /* 1/7th-- 6 buttons, one double sized */
     white-space: nowrap;
+}
+
+.recording-button-double {
+    height: 28.57%; /* record-next is twice as big, to be easier to hit */
 }
 
 .recording-button-text-visible {

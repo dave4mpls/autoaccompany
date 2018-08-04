@@ -17,7 +17,7 @@ import { AAPlayer } from './MIDI/AAPlayer.js';
 import { InstrumentTabs } from './InstrumentTabs.js';
 import { RecordingArea } from './RecordingArea.js';
 import { SettingsStorage } from './SettingsPanel/Settings.js';
-import { Note, Track, TrackStorage, TrackList } from './Music/Tracks.js';
+import { TrackList } from './Music/TrackStorage.js';
 import { MTheory } from './Music/MusicTheory.js';
 
 // App Component -- complete app

@@ -15,8 +15,10 @@ class RecordingButton extends Component {
         if (this.props.compact) 
             textClassName = "recording-button-text-hidden";
         let textStyle = { color: this.props.color };
+        let recordingButtonClassName = "recording-button";
+        if (this.props.double) recordingButtonClassName += " recording-button-double"
         return (
-            <button className="recording-button">
+            <button className={ recordingButtonClassName} >
                 { this.props.symbol }
                 <span className={ textClassName } style={ textStyle }>
                 { " " + this.props.name + " " }
@@ -33,7 +35,7 @@ export class RecordingControls extends Component {
             <div className="recording-controls-container">
                 <RecordingButton symbol="⏺️️" name="Record" color="red" compact={this.props.compact} />
                 <RecordingButton symbol="⏺️▶️" name="Play & Record" color="red" compact={this.props.compact} />
-                <RecordingButton symbol="⏺️⏭️" name="Record Next" color="red" compact={this.props.compact} />
+                <RecordingButton symbol="⏺️⏭️" name="Record Next" double={ true } color="red" compact={this.props.compact} />
                 <RecordingButton symbol="⏹️" name="Stop" compact={this.props.compact} />
                 <RecordingButton symbol="️️▶️" name="Play" compact={this.props.compact} />
                 <RecordingButton symbol="️️⏪" name="Rewind" compact={this.props.compact} />
