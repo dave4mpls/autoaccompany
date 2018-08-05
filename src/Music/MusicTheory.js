@@ -57,6 +57,88 @@ export class MTheoryClass {
                 if (thisObject.scales[i][0] === scaleName) return thisObject.scales[i][2];
             }
             return [];
+        };
+        thisObject.scaleAsSteps = function(thisScale) {
+            // converts a scale array into a step instruction array showing intervals in a scale
+            // (e.g. the original array tells you which note number is in each step of the scale,
+            // the step array tells you how many half-steps to move).
+            let steps = [ ]; let lastStep = 0;
+            for (let i = 0; i < thisScale.length; i++) 
+                { steps.push(thisScale[i] - (i===0?0:thisScale[i-1])); lastStep = thisScale[i]; }
+            steps.push(12-lastStep);
+            return steps;
+        }
+        thisObject.whichStep = function(thisScale, rootNote, thisNote) {
+            // Which step of the scale is the given note on, assuming the scale is rooted
+            // in rootNote?  Returns an index into thisScale, or -1 if not in the scale.
+            let rootMod = rootNote % 12; let thisMod = thisNote % 12;
+            for (let i = 0; i < thisScale.length; i++) {
+                if (((thisScale[i] + rootMod) % 12) === thisMod) return i;
+            }
+            return -1;
+        }
+        thisObject.nextStep = function(thisArray, i, direction) {
+            // Goes to the next step in the scale OR step array, wrapping appropriately.
+            // Direction is -1 for descending, 1 for ascending.
+            i = i + direction;
+            if (i < 0) i = thisArray.length - 1;
+            if (i > thisArray.length) i = 0;
+            return i;
+        }
+        thisObject.notePlusSteps = function(thisScale,rootNote, startNote,numberOfSteps) {
+            // Moves a certain number of scale steps in the given scale starting at the
+            // given root note (key), then returns the destination note.  Returns -1 on error
+            // (e.g. original note not on the scale).
+            let steps = thisObject.scaleAsSteps(thisScale);
+            let direction = Math.sign(numberOfSteps); let numberOfSteps = Math.abs(numberOfSteps);
+            let currentIndex = thisObject.whichStep(thisScale, rootNote, startNote); 
+            if (currentIndex === -1) return -1;
+            if (direction < 0) currentIndex = thisObject.nextStep(steps, currentIndex, direction);
+            let newNote = startNote;
+            for (let i = 0; i < numberOfSteps; i++) {
+                newNote += direction * steps[currentIndex];
+                currentIndex = thisObject.nextStep(steps, currentIndex, direction); 
+            }
+            return newNote;
+        }
+        thisObject.howManySteps = function(thisScale, rootNote, startNote, destinationNote) {
+            // How many whole-steps and half-steps from start note to destination note?
+            // Returns a two-item array where the first item is the whole steps (signed) and the
+            // second is the half-steps (also signed, same direction).  Returns null on error.
+            // The root note specifies which key we are in.
+            if (startNote === destinationNote) return [0,0];
+            let steps = thisObject.scaleAsSteps(thisScale);
+            let direction = (startNote > destinationNote) ? -1 : 1;
+            let currentIndex = thisObject.whichStep(thisScale, rootNote, startNote);
+            if (currentIndex === -1) return null;
+            if (direction < 0) currentIndex = thisObject.nextStep(steps, currentIndex, direction);
+            let currentNote = startNote; let lastNote = startNote; let stepsTaken = 0;
+            while ((direction === 1 && currentNote < destinationNote) || (direction === -1 && currentNote > destinationNote)) {
+                lastNote = currentNote; stepsTaken += direction;
+                currentNote += direction * steps[currentIndex];
+                currentIndex = thisObject.nextStep(steps, currentIndex, direction);
+            }
+            let halfSteps = (currentNote === destinationNote) ? 0 : (direction * Math.abs(currentNote - lastNote));
+            return [ stepsTaken, halfSteps ];
+        }
+        thisObject.transposeOnScale = function(noteNumber, thisScale, rootNote, accompanimentNoteNumber) {
+            // Given a played note, a scale, a root Note, and a new accompaniment note, returns the corresponding
+            // new note.  On error return the original note if you think it would sound good to play,
+            // or -1 if you don't want a note to be played.  The way this works is it just finds the
+            // scale steps between root and accompaniment, and adds those same scale steps to the note.
+            // This should make the octaves work out by themselves.
+
+            // first, how many scale steps (and half-steps) from root to the note to be played?
+            let nScaleSteps = thisObject.howManySteps(thisScale, rootNote, rootNote, noteNumber);
+            if (nScaleSteps===null) return noteNumber;  // root can't be off scale, but note can (hence the half-step return in array element 1).
+            // now, since the accompaniment note is the new root, add the delta from root to note, to the accompaniment note.
+            // Keep in mind that although the accompaniment note is the new root NOTE, the SCALE it uses is still
+            // based on the original root (it's in the key of that root!)
+            let newNote = thisObject.notePlusSteps(thisScale, rootNote, accompanimentNoteNumber, nScaleSteps[0]);
+            if (newNote === -1) return noteNumber;  // could happen if accompaniment note is not in the scale
+            // Now, add the half-steps.  Return the new note!
+            newNote += nScaleSteps[1];
+            return newNote;
         }
     }
 }

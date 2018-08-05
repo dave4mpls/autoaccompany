@@ -35,6 +35,8 @@ export class Note {
         this.velocity = velocity;
         this.extra = extra;
         this.duration = duration;
+        this.nto = null;        // note timer objectused to store the setTimeout timer handle while the note is playing.
+        this.sf = null;         // function for stopping the note; programmed into the timer but can be called early if needed.
     }
 
     clone() {
@@ -51,19 +53,34 @@ export class Note {
             dataObject.velocity, dataObject.extra, dataObject.duration);
     }
 
-    play(overrideChannel, speed = 100.0) {
+    play(overrideChannel, speed = 100.0, overrideNoteNumber = -1, notePlayingArray = null) {
         //-- Plays this one event, right now, returning immediately (i.e. if it's a note, it will
-        //-- turn off at some future point asynchronously).
+        //-- turn off at some future point asynchronously).  Override Channel overrides the channel,
+        //-- unless it's NT_PLAYBACK_ORIGINAL_CHANNEL.  OverrideNoteNumber overrides the note number
+        //-- (typically used when adjusting notes for Auto Accompaniment). -1 leaves the note the same. The note playing array
+        //-- is maintained by this routine, you just pass in the array and it adds the note when it
+        //-- plays it, and removes the note when it is done or when you call stop on the note.
         let myChannel = this.channel, myNoteNumber = this.noteNumber, myVelocity = this.velocity;
+        let thisObject = this;
         if (overrideChannel && overrideChannel !== this.NT_PLAYBACK_ORIGINAL_CHANNEL) {
             myChannel = overrideChannel;
         }
+        if (overrideNoteNumber !== -1) myNoteNumber = overrideNoteNumber;
         switch (Note.noteType) {
             case this.NT_NOTE:
                 AAPlayer.noteOn(myChannel, myNoteNumber, myVelocity, 0);
-                setTimeout(function() {
+                this.sf = function() {
+                    // function for turning off a note and removing it from the note playing array.
                     AAPlayer.noteOff(myChannel, myNoteNumber, 0);
-                }, this.duration * 100.0 / speed);
+                    this.nto = null;   // setting this back to null lets us know the note is done playing.
+                    if (notePlayingArray !== null) {
+                        for (let i = 0; i < notePlayingArray.length; i++) {
+                            if (notePlayingArray[i]===thisObject) { notePlayingArray.splice(i,1); i--; }
+                        }
+                    }
+                }
+                this.nto = setTimeout(this.sf, this.duration * 100.0 / speed);
+                if (notePlayingArray !== null) notePlayingArray.push(this);
                 break;
             case Note.NT_PROGRAM_CHANGE:
                 let instrumentNumber = this.noteNumber;
@@ -79,6 +96,13 @@ export class Note {
             default:
                 break;      
         }
+    }
+
+    stop() {
+        // stops the note playing immediately.
+        if (this.nto === null) return;  // not playing -- so stop has no effect.
+        clearTimeout(this.nto);     // prevent the timeout from happening
+        this.sf();        // and run its function now instead (stopping note, removing from note array, etc.)
     }
 }
 

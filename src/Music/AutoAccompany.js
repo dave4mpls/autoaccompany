@@ -26,8 +26,8 @@ export class AutoAccompanySettings {
         // Types of auto-accompaniment
 
         // Properties to guide auto-accompaniment
-        thisObject.aaType = thisObject.AA_SCALE;     // type of auto-accompaniment
-        thisObject.aaKey = 0;             // 0 = C, 1 = C#, 2 = D, etc. up to 11: key of the scale or chord
+        thisObject.aaType = thisObject.AA_NOCHANGE;     // type of auto-accompaniment, defaults to none (e.g., melody track)
+        thisObject.aaRootNote = 48;             // The root note specifies both the key (48 is C below middle C) and the octave.  If the accompaniment key is above or below the root note, the accompaniment line is transposed accordingly.
         thisObject.aaScale = "MAJOR"; // default scale is C Major.  
         thisObject.aaChord = "M";   // default chord is major.        
         // Properties for maintaining accompaniment keys

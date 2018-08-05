@@ -205,6 +205,7 @@ export class Track {
         //--- (and which do not specify data that must be saved).
         //--- internal properties
         this._downNotes = { };  // notes that are down during recording
+        this._notesPlaying = [ ];   // notes that are currently playing, which help the Stop command stop better
         this._startTime = 0;
         this._lastTime = 0;
         this._noPropertyChanges = false;
@@ -248,11 +249,12 @@ export class Track {
         return true;
     }
 
-    indexOf(desiredElapsedTime) {
+    indexOf(desiredElapsedTime, allowInfinityFlag = true) {
         //-- Walks through the song and locates the index of the exact elapsed time given.
         //   Follows all repeats.  If elapsedTime is -1, returns the duration of the
-        //   entire tracks instead, or Infinity if it repeats forever.  Returns -1 on
-        //   invalid input, or elapsed time past the end of the track.
+        //   entire track instead, or Infinity if it repeats forever.  If allowInfinityFlag is
+        //   false, instead of Infinity it returns the duration up until the first infinite repeat.  
+        //   Returns -1 on invalid input, or elapsed time past the end of the track.
         //   Result is in milliseconds.
         //   If the index lands exactly at the start of a note, that note's index will be
         //   returned.  If it is in the middle of an NT_WAIT, you may have to wait the portion
@@ -292,8 +294,12 @@ export class Track {
                 case Note.REPEAT:
                     // We also have to keep an eye out for repeats.  Just like in playback,
                     // we have to track the counts for each repeat.
-                    if (thisNote.duration === Infinity && desiredElapsedTime === -1)
-                        return Infinity;    // if request is for duration, & we have an infinite repeat, return Infinity.
+                    if (thisNote.duration === Infinity && desiredElapsedTime === -1) {
+                        if (allowInfinityFlag)
+                            return Infinity;    // if request is for duration, & we have an infinite repeat, return Infinity.
+                        else
+                            return elapsedTime;
+                    }
                     if (this.handleRepeatCount(repeatCounts, thisNote.id, thisNote.duration)) {
                         // The handle-repeat-count routine says we repeat again, so do it.
                         i = this.indexOfId(thisNote.extra);
@@ -311,10 +317,12 @@ export class Track {
         }
     }
     
-    duration() {
+    duration(allowInfinityFlag = true) {
         // Returns the duration of the track in milliseconds.
         // May return Inifinity if there are any infinite repeats.
-        return this.indexOf(-1);
+        // To avoid getting Infinity, set the allowInfinityFlag to false, in which case
+        // you will get the duration of the track before its first infinite repeat symbol.
+        return this.indexOf(-1, allowInfinityFlag);
     }
 
     rewind() {
@@ -376,15 +384,20 @@ export class Track {
                     setTimeout(this._internal_play, thisNote.duration * 100.0 / this._speed);
                     return;  // NOT break because the song isn't over!
                 case Note.NT_NOTE:
+                    // note: remember that if we play the note, we have to put it in the playing notes array
+                    // and take it out again, such that the stop notes function can stop them all on a dime
+                    if ((!this._mute) && (!this._soloMute)) {
+                        thisNote.play(this._playbackChannel, this._speed, -1, this._notesPlaying);
+                    }
+                    this._playIndex++;
+                    break;
                 case Note.NT_PITCH_BEND:
                 case Note.NT_MIDI:
                 case Note.NT_PROGRAM_CHANGE:
                     // message that the note can handle itself: have the note handle it.
                     // Remember to send it the playback channel in case it needs to change the channel.
-                    if ((!this._mute) && (!this._soloMute))
-                        thisNote.play(this._playbackChannel, this._speed);
+                    thisNote.play(this._playbackChannel, this._speed);
                     this._playIndex++;
-                    break;
                 case Note.NT_REPEAT:
                     if (this.handleRepeatCount(this._repeatCounts, thisNote.id, thisNote.duration)) {
                         // The handle-repeat-count routine says we repeat again, so do it.
@@ -419,10 +432,20 @@ export class Track {
         this.fireEvent("onPlaybackEnded", this);
     }
 
+    stopNotes() {
+        // Stop playback of all current notes WITHOUT necessarily stopping playback.
+        // You do this to put a firm end to any accompaniment notes currently playing when
+        // the accompaniment keys change (among other reasons).
+        let copyOfStopList = this._notesPlaying.slice(0);  // we copy it since the original array will keep losing notes!
+        for (let i = 0; i < copyOfStopList.length; i++)
+            copyOfStopList[i].stop();
+    }
+
     stop() {
         // Stop playback.  Notes currently being played will finish.
         // You can use stop() as a pause button too, just don't reset the
         // playback pointer.
+        this.stopNotes();
         this._stopFlag = true;
     }
 
@@ -447,7 +470,7 @@ export class Track {
             return [ this._playbackChannel ];  // simple: track all plays back on one channel.
         }
         let channelsUsed = [ ];
-        for (let i = 0; i < this._notes.length) {
+        for (let i = 0; i < this._notes.length; i++) {
             if (channelsUsed.indexOf(this._notes[i].channel) === -1)
                 channelsUsed.push(this._notes[i].channel);
         }
