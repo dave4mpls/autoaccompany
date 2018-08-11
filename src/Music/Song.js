@@ -417,6 +417,7 @@ export class Song {
             if (thisProperty[0] !== "_") continue;
             if (thisProperty === "_tracks") continue;
             if (thisProperty === "_recordingOnTracks") continue;
+            if (thisProperty === "_loading") continue;
             destinationObject[thisProperty] = this[thisProperty];
         }
         return destinationObject;
@@ -463,7 +464,8 @@ export class Song {
         // Static method, so use this: let newSong = Song.load(songId).
         if (localStorage.getItem("SongHeader_" + songId) === null) return null;
         if (localStorage.getItem("SongTrackCount_" + songId) === null) return null;
-        let newSong = new Song();
+           let newSong = new Song();
+        newSong._loading = true;
         newSong.shallowCopy.call(JSON.parse(localStorage.getItem("SongHeader_" + songId)),newSong);
         for (let i = 0; i < parseInt(localStorage.getItem("SongTrackCount_" + songId),10); i++) {
             let trackData = localStorage.getItem("SongTrack_" + songId + "_" + i);
@@ -471,6 +473,7 @@ export class Song {
             newSong.addTrack(Track.load(trackData));
         }
         newSong.resetMediaState();
+        newSong._loading = false;
         return newSong;
     }
 

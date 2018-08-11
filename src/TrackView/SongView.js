@@ -74,8 +74,9 @@ export class SongView extends Component {
                                 trackRenderList.push(
                                     <TrackView key={i} track={thisObject.props.song.getTrack(i)} />
                                 );
-                            return trackRenderList;
                             }
+                            console.log(trackRenderList.length + " track render items");
+                            return trackRenderList;
                         }()
                     }
                 </div>

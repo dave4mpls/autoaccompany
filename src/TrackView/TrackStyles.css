@@ -4,6 +4,7 @@
     height: 100%;
     background-color: #e0e0e0;
     color: black;
+    overflow: auto;
 }
 
 .track-input {
@@ -16,4 +17,6 @@
     border: solid black 3px;
     background-color: #fefefe;
     margin-bottom: 5px;
+    border-radius: 8px;
+    font-size: 12px;
 }
