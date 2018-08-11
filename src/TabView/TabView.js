@@ -45,6 +45,14 @@ export class TabView extends Component {
         this.state = { tabInfo: this.getTabInfo(this.props.startingTab) }
     }
 
+    reloadTabs(selectedTab) {
+        // can be called if you get a ref to the tabview; used to force
+        // change when a tab is added/removed by parent
+        this.setState(function(prevState) {
+            return { tabInfo: this.getTabInfo(selectedTab, { })};
+        });
+    }
+
     getTabInfo(newCurrentTab, previousTabInfo = { }) {
         // creates a new tabInfo object with a variety of informataion about the order of the rendered tabs, their widths, etc.
         // It is then stored in the state so when the tabs change they only move when needed.
@@ -53,6 +61,8 @@ export class TabView extends Component {
         // If this is the initial run, make a tab array.
         if (!tabInfo.tabArray) {
             let childrenArray = React.Children.toArray(this.props.children);
+            if (tabInfo.currentTabSourceOrder >= childrenArray.length)
+                tabInfo.currentTabSourceOrder = childrenArray.length;
             tabInfo.tabArray = [];
             for (let i = 0; i < childrenArray.length; i++) {
                 var thisTab = { };
@@ -101,9 +111,12 @@ export class TabView extends Component {
         this.setState(function(prevState) {
                 return { tabInfo: this.getTabInfo(i, prevState.tabInfo)};
             });
+        //-- the tabs offer an onTabClick property for when a tab is clicked.
+        if (this.props.onTabClick) this.props.onTabClick(this.state.tabInfo.currentTabSourceOrder);
     }
 
     render() {
+
         let tabInfo = this.state.tabInfo;
         let thisObject = this;  // for reference by closures below
         let containerStyle = { };

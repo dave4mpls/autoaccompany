@@ -20,6 +20,13 @@ export class AutoAccompanySettings {
     static AA_CHORD = 2           // Notes translated to corresponding notes within a chord
         // (Accompaniment can be any new chord with same # of notes or less,
         // which will translate the accompaniment into corresponding chord notes.)
+    static AA_AUTO = 3          // This means Auto Accompaniment is ON, and when
+                                // recording stops on a track, its Auto Accompaniment
+                                // settings will automatically be decided based on the notes
+                                // you played!  If you only played the notes in G Major 7,
+                                // it will set it to AA_CHORD and G Major.  If you played
+                                // additional notes so it doesn't fit a chord, but fits the
+                                // C Major Scale, it will set it to AA_SCALE and C Major.
     constructor() {
         let thisObject = this;
 

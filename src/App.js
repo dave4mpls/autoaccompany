@@ -56,6 +56,12 @@ class App extends Component {
           AAPlayer.sendInputProgramChangeWithInstrumentLoad(i, 
             SettingsStorage.getSettingArray("currentInstrument", i));
         }
+        // now we set up and load the song data from persistent storage (or create
+        // a starter song if none exists)
+        TrackList.load();
+        if (TrackList.songs.length === 0) {
+          TrackList.addNewSong();
+        }
         // play startup notes that indicate it's working (debugging)
         AAPlayer.noteOn(0,60,127,0);
         AAPlayer.noteOff(0,60,0.4);

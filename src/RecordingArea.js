@@ -9,6 +9,7 @@ import { AAPlayer } from './MIDI/AAPlayer.js';
 //-- Sub-component imports
 import { PianoKeyboard } from './PianoKeyboard/PianoKeyboard.js';
 import { Tab, TabView } from './TabView/TabView.js';
+import { SongArea } from './TrackView/SongArea.js';
 import { FillRemainderPanel } from './FillRemainderPanel/FillRemainderPanel.js';
 
 // Settings panels
@@ -23,7 +24,7 @@ export class RecordingArea extends Component {
                 <Tab name="🎶 Tracks">
                     <FillRemainderPanel direction="column" sizes={["20vh","100%"]}>
                         <RecordingControls compact={false} />
-                        <div style={{backgroundColor: "#e0e0e0", height: "100%" }}></div>
+                        <SongArea />
                     </FillRemainderPanel>
                 </Tab>
                 <Tab name="⚙️ Settings">

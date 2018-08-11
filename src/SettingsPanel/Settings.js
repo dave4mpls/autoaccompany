@@ -23,7 +23,7 @@ class SettingsStorageClass extends GenericSettingsStorageClass {
 
         // screen keyboard settings
         this._screenAccompanimentKeyboard = false;
-        this._recordPanelByKeyboard = true;
+        this._recordPanelByKeyboard = false;
         this._pitchControlHorizontal = false;  // cool onscreen keyboard pitch bend option!
 
         // midi velocity settings

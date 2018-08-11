@@ -248,7 +248,11 @@ class AAPlayerClass {
             for (let noteNumber of noteNumbers) thisObject.noteOff(channel, noteNumber, delay);
         }
 
-
+        thisObject.instrumentName = function(instrumentNumber) {
+            try {
+            return MIDI.GM.byId[instrumentNumber].instrument;
+            } catch(e) { return "Unknown"; }
+        }
 
     }
 }

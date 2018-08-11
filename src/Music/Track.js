@@ -583,7 +583,12 @@ export class Track {
     }
     save() {
         // For saving a track, all the critical data will be captured with a straight JSON stringify.
-        return JSON.stringify(this);
+        // But we have to remove the song list first to avoid circular references.
+        let songReference = this._song;
+        this._song = null;
+        let s = JSON.stringify(this);
+        this._song = songReference;
+        return s;
     }
     static load(jsonText) {
         // For loading, we have a static method (so you do let loadedTrack = Track.load(jsonText)).

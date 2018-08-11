@@ -17,6 +17,7 @@ import { EventHandler } from '../EventHandler.js';
 import { Note } from './Note.js';
 import { Track } from './Track.js';
 import { MTheory } from './MusicTheory.js';
+import { AutoAccompanySettings } from './AutoAccompany.js';
 
 export class Song {
     constructor() {
@@ -38,7 +39,7 @@ export class Song {
             localStorage.setItem("nextSongId", "" + uniqueSongId);
         }
         //--- now add various basic properties
-        this._name = "";
+        this._name = "Untitled " + this._id;
         this._selected = 0;     // selected track
         this._loading = false;  // true while loading from storage -- prevents loop of saving changes when loading changes.
         this._recordingOnTracks = [ ];  // array of track indices we are recording on.
@@ -84,11 +85,15 @@ export class Song {
     //--- song modification routines (public)
     setName(n) { this._name = n; this.fireEvent("onChange", this); } 
     getName() { return this._name; }
+    getId() { return this._id; }
+    getTrack(i) { return this._tracks[i]; }
     getTrackCount() { return this._tracks.length; }
+    getVersionNumber() { return this._versionNumber; }
     setSelected(i) {
         if (i < 0 || i >= this._tracks.length) return;
         if (this._tracks[this._selected].isRecording()) return;  // can't change the selection while recording, unless you stop first!
         this._selected = i;
+        this.fireEvent("onChange", this);
         this.fireEvent("onSelectionChange", this);
     }
     getSelected() { return this._selected; }
@@ -123,7 +128,7 @@ export class Song {
         this._tracks.push(t); 
         t.setProperty("song", this);
         t.removeEventHandler("onChange", this.handleTrackChange);  // remove the event handler if it's already there
-        t.addEventHandler("onChange", this.handleTrackChange);  // then add it-- it saves the song when the track changes
+        t.attachEventHandler("onChange", this.handleTrackChange);  // then add it-- it saves the song when the track changes
         this.fireEvent("onChange", this);   // now fire OUR change event.
     }
     clear() { this._tracks = [ ]; this.fireEvent("onChange", this); }
@@ -158,8 +163,8 @@ export class Song {
         let bassTrack = new Track();
         bassTrack.setProperty("playbackChannel",2);
         bassTrack.setProperty("instrument",32);   // acoustic bass
-        bassTrack.autoAccompany.aaType = AutoAccompanySettings.AA_SCALE;
-        bassTrack.autoAccompany.aaKey = 0;  // bass adjusts auto-accompaniment based on the C Major Scale
+        bassTrack.autoAccompany.aaType = AutoAccompanySettings.AA_AUTO;
+        bassTrack.autoAccompany.aaKey = 0;  // bass adjusts auto-accompaniment based on autodetermining the accompaniment style based on what you played.
         bassTrack.autoAccompany.aaScale = "MAJOR";
         this.addTrack(bassTrack);
         let pianoTrack = new Track();
@@ -305,7 +310,7 @@ export class Song {
         // Does not include chord or bar tracks, only regular tracks.
         for (let i = this._selected + 1; i < this._tracks.length; i++) {
             let thisTrackType = this._tracks[i].getProperty("trackType");
-            if (thisTrackType != Track.TR_REGULAR) continue;
+            if (thisTrackType !== Track.TR_REGULAR) continue;
             if (this._tracks[i].getNoteCount() > 0) continue;
             return i;
         }
@@ -408,10 +413,10 @@ export class Song {
     shallowCopy(destinationObject) {
         // Returns all the direct properties of the song as an object.
         // Copies them into the destination object (supply { } if you want a new one).
-        for (thisProperty in this) {
-            if (thisProperty[0] != "_") continue;
-            if (thisProperty[0] == "tracks") continue;
-            if (thisProperty[0] == "recordingOnTracks") continue;
+        for (let thisProperty in this) {
+            if (thisProperty[0] !== "_") continue;
+            if (thisProperty === "_tracks") continue;
+            if (thisProperty === "_recordingOnTracks") continue;
             destinationObject[thisProperty] = this[thisProperty];
         }
         return destinationObject;
@@ -445,7 +450,7 @@ export class Song {
         // (based on its unique ID number set at creation).
         this.deletePersistedSong();  // remove the old one
         let songHeader = this.shallowCopy({ });
-        localStorage.setItem("SongHeader_" + this._id, songHeader);
+        localStorage.setItem("SongHeader_" + this._id, JSON.stringify(songHeader));
         localStorage.setItem("SongTrackCount_" + this._id, this._tracks.length);
         for (let i = 0; i < this._tracks.length; i++) { 
             localStorage.setItem("SongTrack_" + this._id + "_" + i, this._tracks[i].save());
@@ -459,7 +464,7 @@ export class Song {
         if (localStorage.getItem("SongHeader_" + songId) === null) return null;
         if (localStorage.getItem("SongTrackCount_" + songId) === null) return null;
         let newSong = new Song();
-        this.shallowCopy(localStorage.getItem("SongHeader_" + songId));
+        newSong.shallowCopy.call(JSON.parse(localStorage.getItem("SongHeader_" + songId)),newSong);
         for (let i = 0; i < parseInt(localStorage.getItem("SongTrackCount_" + songId),10); i++) {
             let trackData = localStorage.getItem("SongTrack_" + songId + "_" + i);
             if (trackData === null) continue;
