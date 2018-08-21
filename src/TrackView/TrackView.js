@@ -3,6 +3,7 @@
 //  Dave White, 8/6/2018, MIT License
 //
 import React, { Component } from 'react';
+import { Note } from '../Music/Note.js';
 import { TrackList } from '../Music/TrackStorage.js';
 import { SettingsPanel, SettingsRow } from '../SettingsPanel/SettingsPanel.js';
 import { Song } from '../Music/Song.js';
@@ -55,16 +56,57 @@ export class TrackView extends Component {
         evt.stopPropagation();
     }
 
+    formatChannel(ch) {
+        if (ch===Note.NT_PLAYBACK_ORIGINAL_CHANNEL)
+            return "Original Channel";
+        else    
+            return "" + ch;
+    }
+
+    handleTrackClick() {
+        // when the user clicks a track, we select it, within the song.
+        if (this.props.track && this.props.track.getProperty("song")) {
+            // assuming there is a valid track and song, of course (can't see why there wouldn't be)
+            this.props.track.getProperty("song").setSelectedByTrack(this.props.track);
+        }
+    }
+
     render() {
+        // there's an extra div at the top because it is needed to enclose the actual track as well
+        // as the popup component that it opens.
+        let trackClassName = "track";
+        if (this.props.selected) trackClassName += " track-selected";
         return (
             <div>
-            <div className="track">
-                <table>
+            <div className={trackClassName} onClick={()=>this.handleTrackClick()}>
+                <table className="track-main-table">
                 <tbody>
-                <tr><td><b>Track Name:</b></td><td>{this.props.track.getProperty("name")}</td></tr>
-                <tr><td><b>Track Type:</b></td><td>{this.props.track.getProperty("trackType")}</td></tr>
-                <tr><td><b>Instrument:</b></td><td>{AAPlayer.instrumentName(this.props.track.getProperty("instrument"))}</td></tr>
-                <tr><td><b>Channel:</b></td><td>{this.props.track.getProperty("playbackChannel")}</td></tr>
+                    <tr>
+                        <td className="track-control-cell">
+                            <button className="track-small-button" onClick={()=>this.handleDeleteTrack()}>🗑️ Delete</button><br />
+                            <button className="track-small-button" onClick={()=>this.handleEditTrack()}>✏️ Edit</button><br/>
+                            <button className="track-small-button" onClick={()=>this.handleSoloButton()}>① Solo</button><br/>
+                            <button className="track-small-button" onClick={()=>this.handleMuteButton()}>🔇 Mute</button><br/>
+                        </td>
+                        <td>
+                        <table>
+                            <tbody>
+                            <tr><td className="track-label-cell"><b>Track Name:</b></td><td className="track-label-cell">{this.props.track.getProperty("name")}</td></tr>
+                            <tr><td className="track-label-cell"><b>Track Type:</b></td><td className="track-label-cell">{this.props.track.getProperty("trackType")}</td></tr>
+                            <tr><td className="track-label-cell"><b>Instrument:</b></td><td className="track-label-cell">{AAPlayer.instrumentName(this.props.track.getProperty("instrument"))}</td></tr>
+                            <tr><td className="track-label-cell"><b>Channel:</b></td><td className="track-label-cell">{this.formatChannel(this.props.track.getProperty("playbackChannel"))}</td></tr>
+                            </tbody>
+                            </table>
+                        </td>
+                        <td className="track-pianoroll-cell">
+                            <div className="track-pianoroll">
+                            </div>
+                        </td>
+                        <td className="track-control-cell">
+                            <button className="track-tall-button" onClick={()=>this.handleMoveTrackUpButton()}>🡅</button>
+                            <button className="track-tall-button" onClick={()=>this.handleMoveTrackDownButton()}>🡇</button>
+                        </td>
+                    </tr>
                 </tbody>
                 </table>
             </div>

@@ -68,14 +68,14 @@ export class SongView extends Component {
                     {
                         function() {
                             let trackRenderList = [];
-                            console.log("# of tracks:" + thisObject.props.song.getTrackCount());
                             for (let i = 0; i < thisObject.props.song.getTrackCount(); i++) {
-                                console.log("outputting track #" + i);
                                 trackRenderList.push(
-                                    <TrackView key={i} track={thisObject.props.song.getTrack(i)} />
+                                    <TrackView 
+                                        key={i} 
+                                        track={thisObject.props.song.getTrack(i)} 
+                                        selected={(thisObject.props.song.getSelected()===i)}/>
                                 );
                             }
-                            console.log(trackRenderList.length + " track render items");
                             return trackRenderList;
                         }()
                     }

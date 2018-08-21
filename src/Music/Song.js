@@ -96,6 +96,12 @@ export class Song {
         this.fireEvent("onChange", this);
         this.fireEvent("onSelectionChange", this);
     }
+    setSelectedByTrack(t) {
+        // like setSelected, but takes a track object and finds it first
+        for (let i = 0; i < this._tracks.length; i++) {
+            if (this._tracks[i] === t) { this.setSelected(i); return; }
+        }
+    }
     getSelected() { return this._selected; }
     getRecordingTracks() { return this._recordingOnTracks; } // tracks currently being recorded
     getSoloTrack() {

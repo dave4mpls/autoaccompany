@@ -20,3 +20,42 @@
     border-radius: 8px;
     font-size: 12px;
 }
+
+.track-selected {
+    background-color: pink;
+}
+
+.track-control-cell {
+    padding-right: 5px;
+}
+
+.track-label-cell {
+    white-space: nowrap;
+}
+
+.track-small-button {
+    font-size: 75%;
+    width: 100%;
+    white-space: nowrap;
+}
+
+.track-tall-button {
+    font-size: 125%;
+    width: 100%;
+    white-space: nowrap;
+}
+
+.track-pianoroll-cell {
+    width: 100%;
+    border: thin solid green;
+    border-radius: 3px;
+}
+
+.track-pianoroll {
+    background-color: black;
+    width: 100%;
+}
+
+.track-main-table {
+    width: 100%;
+}
