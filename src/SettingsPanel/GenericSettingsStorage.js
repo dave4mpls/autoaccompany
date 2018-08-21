@@ -46,6 +46,7 @@ export class GenericSettingsStorageClass {
         // Persistence routines.
         this.persist = function() {
             //-- Called internally by putSetting and putSettingArray to auto-save new settings.
+            if (thisObject.hasOwnProperty("_noPersistence") && thisObject._noPersistence) return;   // allow non-global objects to set the noPersistence property to ensure that they don't get saved
             if (!thisObject._loaded) return;  // we have to be loaded before we persist
             localStorage.setItem("appSettings", JSON.stringify(thisObject));
         }
@@ -53,6 +54,7 @@ export class GenericSettingsStorageClass {
         this.load = function () {
             //-- Called publicly to load the settings on startup.
             //   Does NOT send midi messages or set up instruments -- caller has to do that.
+            if (thisObject.hasOwnProperty("_noPersistence") && thisObject._noPersistence) return;   // allow non-global objects to set the noPersistence property to ensure that they don't get saved
             if (!localStorage.getItem("appSettings")) {
                 thisObject._loaded = true;  // if not saved yet, just set loaded flag and return
                 return; 

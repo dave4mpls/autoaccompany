@@ -22,20 +22,20 @@ export class MIDIPortSelector extends SettingComponent {
                               // redraw the choices when user presses refresh.  This
                               // reloads the MIDI inputs/outputs from WebMIDI.
             settingProperty: (this.props.portType === "input" ? "currentInput" : "currentOutput"),
-            settingValue: (this.props.portType === "input" ? SettingsStorage.getSetting("currentInput")
-                : SettingsStorage.getSetting("currentOutput")) };
+            settingValue: (this.props.portType === "input" ? this.settingComponentGet("currentInput")
+                : this.settingComponentGet("currentOutput")) };
     }
 
     handleNewValue(newPorts) {
-        // called by SettingComponent whenever SettingsStorage properties change, whether
+        // called by SettingComponent whenever storageSettingsObject properties change, whether
         // through this UI or elsewhere
         if (this.props.portType === "input") 
             AAPlayer.setInput(newPorts);
         else {
             AAPlayer.setOutput(newPorts);
             // make sure all outputs get current main keyboard instrument & accompany instrument
-            AAPlayer.programChange(0, SettingsStorage.getSettingArray("currentInstrument",0));
-            AAPlayer.programChange(1, SettingsStorage.getSettingArray("currentInstrument",1));
+            AAPlayer.programChange(0, this.settingComponentGetArray("currentInstrument",0));
+            AAPlayer.programChange(1, this.settingComponentGetArray("currentInstrument",1));
         }
     }
 
@@ -43,10 +43,10 @@ export class MIDIPortSelector extends SettingComponent {
         var newPorts = [ ];
         for (var i = 0; i < values.length; i++) newPorts.push(values[i].value);
         if (this.props.portType === "input") {
-            SettingsStorage.putSetting("currentInput",newPorts);
+            this.settingComponentPut("currentInput",newPorts);
         }
         else {
-            SettingsStorage.putSetting("currentOutput",newPorts);
+            this.settingComponentPut("currentOutput",newPorts);
         }
     }
 
@@ -59,7 +59,7 @@ export class MIDIPortSelector extends SettingComponent {
 
     render() {
         if (!AAPlayer.supportsMIDI()) {
-            return (<div>{ SettingsStorage.midiMissingMessage }</div>);
+            return (<div>{ this.settingComponentGetGlobalProperty("midiMissingMessage") }</div>);
         }
         let sourceList = 
             (this.props.portType==="input") ? AAPlayer.refreshInputs() : AAPlayer.refreshOutputs();
@@ -67,7 +67,7 @@ export class MIDIPortSelector extends SettingComponent {
         let valueList = [ ];
         for (var i = 0; i < sourceList.length; i++) {
             choiceList.push({ value: sourceList[i].id, label: sourceList[i].name });
-            if ((SettingsStorage.getSetting(this.state.settingProperty)).indexOf(sourceList[i].id) !== -1)
+            if ((this.settingComponentGet(this.state.settingProperty)).indexOf(sourceList[i].id) !== -1)
                 valueList.push(sourceList[i].id);
         }
         return (

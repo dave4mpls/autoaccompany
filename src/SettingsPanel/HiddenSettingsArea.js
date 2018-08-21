@@ -12,6 +12,9 @@ import { SettingsCaptionCell, SettingsValueCell } from './SettingsPanel.js';
 //  settingName: the setting this panel is dependent on.
 //
 //  Optional: 
+//  settingsStorageObject: if you set this, a different Settings Storage object will
+//      be used instead of the global one; this is used to take advantage of the Settings
+//      user interface components to control settings of songs, for example.
 //  showFunction: a function that returns true if the panel should be visible,
 //      whose first parameter will be the current value of settingName.  If not
 //      provided, the hidden area is shown whenever the given setting is true.
@@ -36,7 +39,7 @@ export class HiddenSettingsArea extends SettingComponent {
         super(props);
         this.state = { 
             settingProperty: this.props.settingName,
-            settingValue: SettingsStorage.getSetting(this.props.settingName) };
+            settingValue: this.settingComponentGet(this.props.settingName) };
     }
 
     render() {

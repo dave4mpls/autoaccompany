@@ -19,12 +19,12 @@ export class NumericSetting extends SettingComponent {
         super(props);
         this.state = { 
             settingProperty: this.props.settingName, 
-            settingValue: SettingsStorage.getSetting(this.props.settingName) };
+            settingValue: this.settingComponentGet(this.props.settingName) };
     }
 
     handleChange(valueAsNumber, valueAsString, inputDOM) {  
         // handles change in the setting
-        SettingsStorage.putSetting(this.props.settingName, valueAsNumber);
+        this.settingComponentPut(this.props.settingName, valueAsNumber);
     }
 
     render() {
@@ -53,12 +53,12 @@ export class ToggleSetting extends SettingComponent {
         super(props);
         this.state = { 
             settingProperty: this.props.settingName,
-            settingValue: SettingsStorage.getSetting(this.props.settingName) };
+            settingValue: this.settingComponentGet(this.props.settingName) };
     }
 
     handleChange(checked) {  
         // handles change in the setting
-        SettingsStorage.putSetting(this.props.settingName, checked);
+        this.settingComponentPut(this.props.settingName, checked);
     }
 
     render() {
@@ -83,12 +83,12 @@ export class KnobSetting extends SettingComponent {
         super(props);
         this.state = { 
             settingProperty: this.props.settingName, 
-            settingValue: SettingsStorage.getSetting(this.props.settingName) };
+            settingValue: this.settingComponentGet(this.props.settingName) };
     }
 
     handleChange(valueAsNumber) {  
         // handles change in the setting
-        SettingsStorage.putSetting(this.props.settingName, valueAsNumber);
+        this.settingComponentPut(this.props.settingName, valueAsNumber);
     }
 
     render() {

@@ -20,11 +20,11 @@ export class InstrumentSelector extends SettingComponent {
             settingProperty: "currentInstrument",
             settingIndex: this.props.channel,
             settingValue: 
-                SettingsStorage.getSettingArray("currentInstrument",this.props.channel) }
+                this.settingComponentGetArray("currentInstrument",this.props.channel) }
     }
 
     handleNewValue(newInstrument) {
-        //-- called by SettingComponent whenever the SettingsStorage element it is listening to changes--
+        //-- called by SettingComponent whenever the settingsStorageObject element it is listening to changes--
         //-- and actually does all the tasks relating to changing an instrument, including
         //-- loading the instrument and sending appropriate MIDI signals.
         let thisObject = this;
@@ -39,7 +39,7 @@ export class InstrumentSelector extends SettingComponent {
 
     handleChange(evt) {
         let newInstrument = parseInt("" + evt.target.value, 10);
-        SettingsStorage.putSettingArray("currentInstrument", this.props.channel, newInstrument);
+        this.settingComponentPutArray("currentInstrument", this.props.channel, newInstrument);
     }
 
     openPopup() {

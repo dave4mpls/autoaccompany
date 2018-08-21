@@ -36,7 +36,7 @@ export class InstrumentTabs extends Component {
                             id={1} />
                         <HiddenSettingsArea settingName="screenAccompanimentKeyboard">
                             <PianoKeyboard 
-                                computerKeyboardMap={ PianoKeyboard.ChromaticKeyboardMap("a~s~df~g~h~jk~l;'", 54)}
+                                computerKeyboardMap={ PianoKeyboard.ChromaticKeyboardMap("a~s~df~g~h~jk~l~;'", 60)}
                                 player={ AAPlayer }
                                 channel={1}
                                 minNote={36} 

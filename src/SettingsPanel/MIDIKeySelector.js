@@ -21,7 +21,7 @@ export class MIDIKeySelector extends SettingComponent {
         super(props);
         this.state = { open: false, 
             settingProperty: this.props.settingName,
-            settingValue: SettingsStorage.getSetting(this.props.settingName) };
+            settingValue: this.settingComponentGet(this.props.settingName) };
         this.playerHandler = null;
         this.playerHandlerEnd = null;
     }
@@ -38,7 +38,7 @@ export class MIDIKeySelector extends SettingComponent {
                 AAPlayer.noteOff(0, noteObj.noteNumber, 0.25);
             }
             AAPlayer.preventDefault();
-            SettingsStorage.putSetting(thisObject.props.settingName, noteObj.noteNumber);
+            thisObject.settingComponentPut(thisObject.props.settingName, noteObj.noteNumber);
         });
         thisObject.playerHandlerEnd = AAPlayer.attachEventHandler("onInputNoteOff", function(noteObj) {
             // we don't close the popup until the user lets GO of the note, especially for when
@@ -56,7 +56,7 @@ export class MIDIKeySelector extends SettingComponent {
 
     handleUnassigned() {
         // user wants to not have this feature be assigned to a MIDI key
-        SettingsStorage.putSetting(this.props.settingName, 0);
+        this.settingComponentPut(this.props.settingName, 0);
         this.closePopup();
     }
 
@@ -79,7 +79,7 @@ export class MIDIKeySelector extends SettingComponent {
 
     render() {
         if (!AAPlayer.supportsMIDI()) {
-            return (<div>{ SettingsStorage.midiMissingMessage }</div>);
+            return (<div>{ this.settingComponentGetGlobalProperty("midiMissingMessage") }</div>);
         }
         return (
             <span>
@@ -106,10 +106,10 @@ export class MIDIKeySelector extends SettingComponent {
                 </div><br />
                 <button className="settings-popup-button" onClick={()=>this.handleUnassigned()}>
                 Don't assign a key for this
-                </button><br />
+                </button><br /><br />
                 <button className="settings-popup-button" onClick={()=>this.handleCloseNoChange()}>
                 Close without changing the key
-                </button><br />
+                </button><br /><br />
                 <PianoKeyboard 
                     player={ AAPlayer }
                     channel={0}

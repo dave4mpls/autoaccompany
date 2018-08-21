@@ -13,7 +13,7 @@
     height: 14%;     /* 1/7th-- 6 buttons, one double sized */
     white-space: nowrap;
     overflow: visible;
-    min-height: 25px;
+    min-height: 22px;
 }
 
 .recording-button-double {
