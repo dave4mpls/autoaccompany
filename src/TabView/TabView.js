@@ -110,9 +110,12 @@ export class TabView extends Component {
         // when a tab is clicked, change the current tab 
         this.setState(function(prevState) {
                 return { tabInfo: this.getTabInfo(i, prevState.tabInfo)};
+            },
+            function() {
+                //-- the tabs offer an onTabClick property for when a tab is clicked.
+                //-- BUT YOU HAVE TO CALL IT AFTER STATE IS CHANGED, ASYNCHRONOUSLY!
+                if (this.props.onTabClick) this.props.onTabClick(this.state.tabInfo.currentTabSourceOrder);
             });
-        //-- the tabs offer an onTabClick property for when a tab is clicked.
-        if (this.props.onTabClick) this.props.onTabClick(this.state.tabInfo.currentTabSourceOrder);
     }
 
     render() {

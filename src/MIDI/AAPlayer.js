@@ -30,6 +30,9 @@ class AAPlayerClass {
 
         // Internal state
 
+        // Recording and playback: main buttons
+        
+
         // Support routines for input processing, recording and routing
         thisObject.handleMIDIDeviceInput = function (message) {
             //console.log(message.target.id +": " + JSON.stringify(message.data));; // debugging
