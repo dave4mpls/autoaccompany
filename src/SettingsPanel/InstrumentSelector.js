@@ -29,7 +29,7 @@ export class InstrumentSelector extends SettingComponent {
         //-- loading the instrument and sending appropriate MIDI signals.
         let thisObject = this;
         this.openPopup();
-        AAPlayer.loadPlugin({setupMIDI: false, instrument: newInstrument, 
+        AAPlayer.loadPlugin({setupMIDI: false, instrument: [newInstrument], 
             initialSetup: false, onsuccess: function()
             {
             AAPlayer.sendInputProgramChange(thisObject.props.channel, newInstrument);

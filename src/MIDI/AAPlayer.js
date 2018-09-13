@@ -1,10 +1,9 @@
 //
-//  AAPlayer class encapsulates MIDI playing functions from all sources and
-//  corrects any errors in MIDI lilbrary-- for example, ensures that we use the
-//  correct, available input sources and so forth.
+//  AAPlayer class encapsulates MIDI playing functions from all sources.
+//  It handles the connections to the low-level synthesizer and such.
 //
 
-import MIDI from 'midi_drums';
+import { Synth } from './tinysynth.js';  // 8/29/18: Substituted my improved tinysynth for midi.js npm module, bringing everything into one repository with improved audio!
 import { SettingsStorage } from '../SettingsPanel/Settings.js';
 import { EventHandler } from '../EventHandler.js';
 
@@ -82,22 +81,8 @@ class AAPlayerClass {
         }
 
         thisObject.sendInputProgramChangeWithInstrumentLoad = function(myChannel, programNumber, myInputSource) {
-            let internalFound = false;
-            if (!thisObject.supportsMIDI()) internalFound = true;
-            else {
-                for (let i = 0; i < MIDI.WebMIDI.outputList.length; i++) {
-                    if (MIDI.WebMIDI.outputList[i].id === "internal") internalFound = true;
-                }
-            }
-            if (internalFound) {
-                thisObject.loadPlugin({setupMIDI: false, instrument: programNumber, onsuccess: function()
-                    {
-                    thisObject.sendInputProgramChange(myChannel, programNumber, myInputSource);
-                    }
-                });
-            }
-            else 
-                thisObject.sendInputProgramChange(myChannel, programNumber, myInputSource);
+            //--- this routine just passes through now that we have the new synthesizer, which 
+            thisObject.sendInputProgramChange(myChannel,programNumber,myInputSource);
         }
 
         // Hooks for input methods, typically, just used by the screen keyboards.
@@ -108,7 +93,7 @@ class AAPlayerClass {
             // recorded.
 
             //-- send the message through Midi if it is enabled
-            if (thisObject.supportsMIDI()) MIDI.WebMIDI.send(data, 0);
+            if (thisObject.supportsMIDI()) Synth.send(data, 0);
         }
 
         thisObject.sendInputNoteOn = function(channel, noteNumber, velocity, inputSource = "internal") {
@@ -125,7 +110,7 @@ class AAPlayerClass {
                     inputSource: inputSource}))
                 return;
             if (!SettingsStorage.getSetting("playNotesFromMIDI") && inputSource !== "internal") return;
-            thisObject.noteOff(channel, noteNumber, 0);
+            thisObject.noteOff(channel, noteNumber);
         }
         thisObject.sendInputProgramChange = function(channel, instrument, inputSource = "internal") {
             if (!SettingsStorage.getSetting("playNotesFromMIDI") && inputSource !== "internal") return;
@@ -137,80 +122,79 @@ class AAPlayerClass {
         }
 
         // Get various properties from the underlying MIDI interface.
-        thisObject.drumNames = function() {
-            return MIDI.GM.drumByNote;
+        thisObject.getDrumName = function(n) {
+            return Synth.getTimbreName(1,n);
         }
-
         thisObject.byId = function() {
-            return MIDI.GM.byId;
-        }
-
-        thisObject.channels = function() {
-            return MIDI.channels;
+            var o = [ ];
+            for (var i = 0; i < 128; i++) 
+                o.push({number: i, instrument: Synth.getTimbreName(0,i)});
+            return o;
         }
 
         thisObject.supportsMIDI = function() {
-            return MIDI.supports["webmidi"];
+            return Synth.isMIDIEnabled();
         }
 
         thisObject.noteToKey = function(n) {
-            if (MIDI.noteToKey[n]) return MIDI.noteToKey[n];
-            else return "Unset";
+            var number2key = ['C', 'Db', 'D', 'Eb', 'E', 'F', 'Gb', 'G', 'Ab', 'A', 'Bb', 'B']
+            if (!n || n < 0x15 || n > 0x6C) return "Unset";
+            return number2key[n%12] + (((n-12)/12)>>0);
         }
 
         thisObject.keyToNote = function(k) {
-            if (MIDI.keyToNote[k]) return MIDI.keyToNote[k];
-            else return 0;
+            for (var n = 0x15; n <= 0x6C; n++) {
+                var lk = thisObject.noteToKey(n); if (k===lk) return n;
+            }
+            return 0;
         }
 
-        thisObject.refreshInputs = function() { return MIDI.WebMIDI.refreshInputs(); }
-        thisObject.refreshOutputs = function() { return MIDI.WebMIDI.refreshOutputs(); }
+        thisObject.refreshInputs = function() { return Synth.refreshInputs(); }
+        thisObject.refreshOutputs = function() { return Synth.refreshOutputs(); }
         thisObject.setInput = function(x) {
-            MIDI.WebMIDI.setInput(x); 
-            MIDI.WebMIDI.onmidimessage = function(message) {
+            Synth.setInput(x); 
+            Synth.onmidimessage = function(message) {
                 thisObject.handleMIDIDeviceInput(message);
             }
         }
-        thisObject.setOutput = function(x) { return MIDI.WebMIDI.setOutput(x); } 
+        thisObject.setOutput = function(x) { return Synth.setOutput(x); } 
 
         // Ouput Methods similar to those in the MIDI library, but often changed to output to
         // the desired MIDI port or to the web MIDI library's simulator (and to handle drums):
         thisObject.setMasterVolume = function(x) {
-            MIDI.masterVolume = x;
+            Synth.setMasterVol(x);
         }
         thisObject.stopAllNotes = function() {
-            try { MIDI.stopAllNotes(); } catch(e) { }
-            try { if (thisObject.supportsMIDI()) MIDI.WebMIDI.stopAllNotes(); } catch(e) { }
+            Synth.allSoundOff();
         }
         thisObject.programChange = function(channel, instrument) {
-            if (thisObject.supportsMIDI() && instrument < 128)  
-            //-- notice: when loading, drums (special code 128) might be sent; this should NOT be sent
-            //-- as an actual MIDI message to devices-- just send it to WebAudio which understands.
-                MIDI.WebMIDI.programChange(channel, instrument);
-            else
-                MIDI.programChange(channel, instrument);
+            Synth.send([0xC0 + (channel & 0x0F),(instrument & 0x7F)]);
         }
-        thisObject.send = function(channel, data) {
+        thisObject.send = function(channel, data, t) {
             // Send an arbitrary MIDI message only to external MIDI devices (used for messages not 
             // interpreted by internal synthesizer, so don't send note on/off, program change, or pitch bend
             // through here).
             data = data.slice(0);
             data[0] = ((data[0] & 0xF0) & (channel & 0x0F));
             data[0] &= 0xFF; data[1] &= 0x7F; 
-            if (thisObject.supportsMIDI()) MIDI.WebMIDI.send(data, 0); 
+            if (thisObject.supportsMIDI()) Synth.send(data, t); 
         }
         thisObject.pitchBend = function(channel, bend) {
-            if (thisObject.supportsMIDI())
-                MIDI.WebMIDI.pitchBend(channel, bend);
-            else
-                MIDI.pitchBend(channel, bend);
+            Synth.send([0xE0+(channel & 0x07),bend & 0x7F, bend >> 7]);
         }
         thisObject.loadPlugin = function(obj) {
             let callerSuccess = obj.onsuccess;
-            obj.onsuccess = function() {
-                if (thisObject.supportsMIDI()) {
-                    // initialize WebMIDI before calling the user's success function, if you can.
-                    if (obj.setupMIDI) {
+            if (obj.initialSetup) {     //-- extra stuff we do on initial startup
+                //--- Synth is added to Window because looking at its properties
+                //--- in the debugging window is highly helpful (part of why I like it better than the old sound module midijs).
+                window.Synth = Synth;
+                Synth.setSoundfontPath(obj.soundfontUrl);
+                Synth.setQuality(2);        // We choose sampling quality to start.
+                var afterInstrumentSetup = function() { // this part is called after MIDI setup
+                    //-- whether the instruments were loaded correctly or not is now stored
+                    //-- in the synth's "availableQualities" 
+                    if (!Synth.availableQualities[2]) Synth.setQuality(1);  // fallback to FM synthesis if no samples available
+                    if (Synth.isMIDIEnabled()) {
                         thisObject.refreshInputs();
                         thisObject.refreshOutputs();
                         thisObject.setInput(["internal"]);
@@ -218,29 +202,28 @@ class AAPlayerClass {
                         SettingsStorage.putSetting("currentInput", ["internal"]);
                         SettingsStorage.putSetting("currentOutput", ["internal"]);
                     }
+                    if (callerSuccess) callerSuccess();
                 }
-                if (obj.initialSetup) {
-                    // make sure to set all channels to program 0 (except drums) at start!
-                    for (let i = 0; i < 16; i++) {
-                        if (i === 9) thisObject.programChange(i,128);
-                        else thisObject.programChange(i,0);
-                    }
-                }
-                callerSuccess();
+                var afterMIDISetup = function() {   // set up this function we do after trying to set up MIDI hardware...
+                    //-- note this gets called whether MIDI setup works or not.  now
+                    //-- load the starting instruments...
+                    try {
+                        Synth.loadInstruments(obj.instrument, afterInstrumentSetup, afterInstrumentSetup, null);
+                    } catch(e) { afterInstrumentSetup(); }
+                };
+                try {
+                    Synth.setupMIDIDevices(afterMIDISetup,afterMIDISetup);
+                } catch(e) { afterMIDISetup(); }
+            } else {        //-- loadPlugin is also used to just load instruments-- it made more sense when our sound module was midijs, but we can make it work
+                Synth.loadInstruments(obj.instrument, callerSuccess, callerSuccess);
             }
-            MIDI.loadPlugin(obj);
         }
+        thisObject.currentTime = function() { return Synth.currentTime(); }
         thisObject.noteOn = function(channel, noteNumber, velocity, delay) {
-            if (thisObject.supportsMIDI()) 
-                MIDI.WebMIDI.noteOn(channel, noteNumber, velocity, delay);
-            else
-                MIDI.noteOn(channel, noteNumber, velocity, delay);
+            Synth.send([0x90 + (channel & 0x0F), noteNumber & 0x7F, velocity & 0x7F], delay);
         }
         thisObject.noteOff = function(channel, noteNumber, delay) {
-            if (thisObject.supportsMIDI())
-                MIDI.WebMIDI.noteOff(channel, noteNumber, delay);
-            else
-                MIDI.noteOff(channel, noteNumber, delay);
+            Synth.send([0x80 + (channel & 0x0F), noteNumber & 0x7F, 0], delay);
         }
         thisObject.chordOn = function(channel, noteNumbers, velocity, delay) {
             // my chord routines just call the note routines, so new features they have, like
@@ -252,11 +235,8 @@ class AAPlayerClass {
         }
 
         thisObject.instrumentName = function(instrumentNumber) {
-            try {
-            return MIDI.GM.byId[instrumentNumber].instrument;
-            } catch(e) { return "Unknown"; }
+            return Synth.getTimbreName(0,instrumentNumber);
         }
-
     }
 }
 

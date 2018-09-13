@@ -103,8 +103,8 @@ export class TrackView extends Component {
                             </div>
                         </td>
                         <td className="track-control-cell">
-                            <button className="track-tall-button" onClick={()=>this.handleMoveTrackUpButton()}>🡅</button>
-                            <button className="track-tall-button" onClick={()=>this.handleMoveTrackDownButton()}>🡇</button>
+                            <button className="track-tall-button" onClick={()=>this.handleMoveTrackUpButton()}>▲</button>
+                            <button className="track-tall-button" onClick={()=>this.handleMoveTrackDownButton()}>▼</button>
                         </td>
                     </tr>
                 </tbody>

@@ -35,11 +35,11 @@ class App extends Component {
     AAPlayer.loadPlugin({
       setupMIDI: true,
       initialSetup: true,
-      soundfontUrl: "./soundfonts/",
-      instrument: [ 'acoustic_grand_piano', 'drums' ],
+      soundfontUrl: "./soundfonts",
+      instrument: [ 0, 128 ],
       onsuccess: function ()  {
         // initialize MIDI volume (very important!) and instrument
-        AAPlayer.setMasterVolume(127);
+        AAPlayer.setMasterVolume(0.8);
         AAPlayer.programChange(0, 0);
         AAPlayer.programChange(9, 0);  // change to standard drum kit
         // next: load settings from the persistent store (localStorage)
@@ -63,10 +63,11 @@ class App extends Component {
           TrackList.addNewSong();
         }
         // play startup notes that indicate it's working (debugging)
-        AAPlayer.noteOn(0,60,127,0);
-        AAPlayer.noteOff(0,60,0.4);
-        AAPlayer.chordOn(0, [60,63,67],127,0.5);
-        AAPlayer.chordOff(0, [60,63,67], 1.0);
+        var t = AAPlayer.currentTime();
+        AAPlayer.noteOn(0,60,127,t);
+        AAPlayer.noteOff(0,60,t+0.4);
+        AAPlayer.chordOn(0, [60,63,67],127,t+0.5);
+        AAPlayer.chordOff(0, [60,63,67], t+1.0);
         // developers particularly appreciate global access to the AAPlayer and
         // SettingsStorage objects
         window.AAPlayer = AAPlayer;
@@ -80,6 +81,8 @@ class App extends Component {
           var msie = ua.indexOf('MSIE ');
           var trident = ua.indexOf('Trident/');
       
+          if (ua.indexOf('Edge/')) 
+              rv = -1;  // Edge is not IE, it's better!
           if (msie > 0) {
               // IE 10 or older => return version number
               rv = parseInt(ua.substring(msie + 5, ua.indexOf('.', msie)), 10);
@@ -112,7 +115,7 @@ class App extends Component {
       // regular rendering of the app -- notice hack for Internet Explorer
       return (
         <div className="App">
-          <FillRemainderPanel direction="row" sizes={ [(window.ie ? "auto" : "100%"), "5vh"]}>
+          <FillRemainderPanel direction="row" sizes={ [(window.ie ? "8vh" : "100%"), "5vh"]}>
             <RecordingArea />
             <InstrumentTabs />
           </FillRemainderPanel>

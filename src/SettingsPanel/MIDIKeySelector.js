@@ -34,8 +34,8 @@ export class MIDIKeySelector extends SettingComponent {
         thisObject.playerHandler = AAPlayer.attachEventHandler("onInputNoteOn", function(noteObj) {
             if (thisObject.props.playNote) {
                 //-- there is a prop that makes this play the actual note.
-                AAPlayer.noteOn(0, noteObj.noteNumber, 127, 0);
-                AAPlayer.noteOff(0, noteObj.noteNumber, 0.25);
+                AAPlayer.noteOn(0, noteObj.noteNumber, 127, AAPlayer.currentTime());
+                AAPlayer.noteOff(0, noteObj.noteNumber, AAPlayer.currentTime()+0.25);
             }
             AAPlayer.preventDefault();
             thisObject.settingComponentPut(thisObject.props.settingName, noteObj.noteNumber);

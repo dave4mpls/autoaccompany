@@ -116,7 +116,7 @@ export class PianoKeyboard extends Component {
             var isBlackKey = ([1, 3, 6, 8, 10].indexOf(i % 12) !== -1);
             var thisKeyType = this.props.channel === this.props.player.MIDI_DRUM_CHANNEL ? 'drums' : 
                 (isBlackKey ? 'black' : 'white');
-            var buttonText = (thisKeyType === "drums" ? this.props.player.drumNames()[i] : "");
+            var buttonText = (thisKeyType === "drums" ? this.props.player.getDrumName(i) : "");
             // note: we shift a key back using CSS if it's white and the last one was black.
             // that's how we make the keys overlap!
             keyBuffer.push(<PianoKey 

@@ -68,10 +68,10 @@ export class Note {
         if (overrideNoteNumber !== -1) myNoteNumber = overrideNoteNumber;
         switch (Note.noteType) {
             case this.NT_NOTE:
-                AAPlayer.noteOn(myChannel, myNoteNumber, myVelocity, 0);
+                AAPlayer.noteOn(myChannel, myNoteNumber, myVelocity);
                 this.sf = function() {
                     // function for turning off a note and removing it from the note playing array.
-                    AAPlayer.noteOff(myChannel, myNoteNumber, 0);
+                    AAPlayer.noteOff(myChannel, myNoteNumber);
                     this.nto = null;   // setting this back to null lets us know the note is done playing.
                     if (notePlayingArray !== null) {
                         for (let i = 0; i < notePlayingArray.length; i++) {

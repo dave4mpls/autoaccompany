@@ -30,8 +30,8 @@ export class InstrumentTabs extends Component {
                             computerKeyboardMap={ PianoKeyboard.ChromaticKeyboardMap("1q2w3er5t6yu8i9o0p[=]", 54)}
                             player={ AAPlayer }
                             channel={0}
-                            minNote={36} 
-                            maxNote={89} 
+                            minNote={21} 
+                            maxNote={108} 
                             percentScreenHeight={25} 
                             id={1} />
                         <HiddenSettingsArea settingName="screenAccompanimentKeyboard">
@@ -39,8 +39,8 @@ export class InstrumentTabs extends Component {
                                 computerKeyboardMap={ PianoKeyboard.ChromaticKeyboardMap("a~s~df~g~h~jk~l~;'", 60)}
                                 player={ AAPlayer }
                                 channel={1}
-                                minNote={36} 
-                                maxNote={89} 
+                                minNote={21} 
+                                maxNote={108} 
                                 percentScreenHeight={25} 
                                 id={4} />
                         </HiddenSettingsArea>
@@ -57,14 +57,14 @@ export class InstrumentTabs extends Component {
                             computerKeyboardMap={ PianoKeyboard.ChromaticKeyboardMap("zxcvbnm,./", 36)}
                             channel={9}
                             player={ AAPlayer }
-                            minNote={36}
+                            minNote={35}
                             maxNote={81}
                             percentScreenHeight={12}
                             id={2} />
                         <PianoKeyboard
                             channel={9}
                             player={ AAPlayer }
-                            minNote={36}
+                            minNote={35}
                             maxNote={81}
                             percentScreenHeight={13}
                             id={3} />
