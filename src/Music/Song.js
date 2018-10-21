@@ -91,7 +91,9 @@ export class Song {
     getVersionNumber() { return this._versionNumber; }
     setSelected(i) {
         if (i < 0 || i >= this._tracks.length) return;
-        if (this._tracks[this._selected].isRecording()) return;  // can't change the selection while recording, unless you stop first!
+        if (this._tracks[this._selected]) {
+            if (this._tracks[this._selected].isRecording()) return;  // can't change the selection while recording, unless you stop first!
+        }
         this._selected = i;
         this.fireEvent("onChange", this);
         this.fireEvent("onSelectionChange", this);
@@ -147,6 +149,12 @@ export class Song {
         this.fireEvent("onChange", this);
         return 0;
     }
+    deleteTrackByRef(t) {
+        // deletes a track by track reference
+        for (var i = 0; i < this._tracks.length; i++) {
+            if (this._tracks[i]===t) { this.deleteTrack(i); return; }
+        }
+    }
     addDefaultChordAndRhythm() {
         // Creates a default chord and rhythm track for a song (typically you do this after creating the song).
         let rhythmTrack = new Track();
@@ -193,7 +201,7 @@ export class Song {
             // First two are reserved for keyboard input (both MIDI and virtual).
         for (let i = 0; i < this._tracks.length; i++) {
             // each track can use multiple channels if it doesn't have the channel output forced
-            let trackChannels = this._tracks.getChannelsUsed();
+            let trackChannels = this._tracks[i].getChannelsUsed();
             for (let j = 0; j < trackChannels.length; j++)  {
                 if (trackChannels[j] >= 0 && trackChannels[j] < 16) 
                     allChannels[trackChannels[j]] = 1;

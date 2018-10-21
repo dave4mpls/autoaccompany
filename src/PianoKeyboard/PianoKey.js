@@ -184,7 +184,6 @@ export default class PianoKey extends Component {
           keyboardid={this.props.id}
           keyboardnote={this.props.note}
           style={this.props.style}
-          >{this.props.buttonText}
-          </button>)
+          >{this.props.buttonText}</button>)
     }
   }

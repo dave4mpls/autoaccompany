@@ -19,7 +19,7 @@ import { FillRemainderPanel } from './FillRemainderPanel/FillRemainderPanel.js';
 export class InstrumentTabs extends Component {
     render() {
         return (
-            <TabView rows={1}>
+            <TabView rows={1} browserFixHeight="auto">
             <Tab name="🎹 Keyboard">
                 <FillRemainderPanel direction="column" sizes={["0vw","100%"]}>
                     <HiddenSettingsArea style={{ height: "100%" }} settingName="recordPanelByKeyboard">

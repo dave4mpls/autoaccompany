@@ -17,27 +17,41 @@
 /* Style vertical sections: flex container of whole page, tabs, and content. */
 .tabcontainer {
     display: flex;
+    display: -webkit-box; 
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
     height: 100%;
     flex-direction: column;
+    -ms-flex-direction: column;
+    -webkit-flex-direction: column;
     background-color: white;
 }
 
 .tablinkset_1row {
     flex: 0 0 30px;
+    -ms-flex: 0 0 30px;
+    -webkit-flex: 0 0 30px;
 }
 
 .tablinkset_2row {
     flex: 0 0 48px;
+    -ms-flex: 0 0 48px;
+    -webkit-flex: 0 0 48px;
     height: 48px;
 }
 
 .tablinkset_3row {
     flex: 0 0 66px;
+    -ms-flex: 0 0 66px;
+    -webkit-flex: 0 0 66px;
     height: 66px;
 }
 
 .tabcontentset_row1 {
     flex: 1 1 auto;
+    -ms-flex: 1 1 auto;
+    -webkit-flex: 1 1 auto;
     overflow: auto;
     background-color: #009688;
 /*    z-index: 100; */
@@ -45,6 +59,8 @@
 
 .tabcontentset_row2 {
     flex: 1 1 auto;
+    -ms-flex: 1 1 auto;
+    -webkit-flex: 1 1 auto;
     overflow: auto;
     background-color: #009688;
     position: relative;
@@ -54,6 +70,8 @@
 
 .tabcontentset_row3 {
     flex: 1 1 auto;
+    -ms-flex: 1 1 auto;
+    -webkit-flex: 1 1 auto;
     overflow: auto;
     background-color: #009688;
     position: relative;
@@ -76,6 +94,8 @@
     font-weight: bold;
     text-align: center;
     flex: 0 1 auto;
+    -ms-flex: 0 1 auto;
+    -webkit-flex: 0 1 auto;
     overflow: hidden;
     height: 0px;    /* overridden with tabheight in code */
     width: 100%;  /* overridden with 100/tabsPerRow % in code */
@@ -118,6 +138,8 @@
 /* Style the tab content */
 .tabcontent {
     flex: 1 1 auto;
+    -ms-flex: 1 1 auto;
+    -webkit-flex: 1 1 auto;
     color: white;
     display: none;
     padding: 10px 20px;

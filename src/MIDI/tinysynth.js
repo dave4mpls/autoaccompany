@@ -1279,8 +1279,13 @@ function WebAudioTinySynth(opt){
           }
         if (!sample) return;   // on IE, no soundfonts mean no sound, there's no synthesizer backup.
         var a = sample;
-        try { a.currentTime = 0;} catch(e) { }
-        try { a.volume = this.masterVol * this.vol[ch] * (v/127);  } catch(e) { }  // yes, we do have velocity control, thank you!
+        try { a.currentTime = 0;} catch(e) { console.log("a" + JSON.stringify(e)); }
+        try {
+          var tagVolume = this.masterVol * this.vol[ch] * (v/127);
+          if (tagVolume < 0.0) tagVolume = 0.0;
+          if (tagVolume > 1.0) tagVolume = 1.0;
+          a.volume = tagVolume; 
+        } catch(e) { console.log("b" + JSON.stringify(e)); }  // yes, we do have velocity control, thank you!
         if (!this.rhythm[ch])    
           this.notetab.push({t:t,e:99999999,ch:ch,n:n,o:[],g:[],t2:t,v:0,r:[p[0].r],f:0,activeQuality:2,useAudioTags:true,audioTag:a});
         if (t-this.actx.currentTime > 0.01)
@@ -1330,7 +1335,7 @@ function WebAudioTinySynth(opt){
           }     // loop the sample if this is a sustained sound (and not percussion-- let's assume no percussion is sustained!)-- works pretty good!
           else 
             endRampDown = true;  // also, we always ramp down at the end of the sample
-          this.chmod[ch].connect(o[i].detune);  // mod wheel
+          if (o[i].detune) this.chmod[ch].connect(o[i].detune);  // mod wheel
           if (o[i].detune) o[i].detune.value=this.bend[ch];    // pitch bend
           g[i]=this.actx.createGain();
           r[i]=pn.r;    // we do keep the release time from Quality 1 line 0-- the combination will make my bells ring more ringily! :-) DW
@@ -1750,6 +1755,7 @@ function WebAudioTinySynth(opt){
           return retObj;
         };
       }
+      if ("performance" in window === false) { window.performance = { now: function() { return new Date().getTime(); }}}
       this.tsdiff=performance.now()*.001-this.actx.currentTime;
       //console.log("TSDiff:"+this.tsdiff);
       this.out=this.actx.createGain();

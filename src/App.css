@@ -11,12 +11,16 @@
 
 .App-top {
   flex: 1 1 100%;
+  -ms-flex: 1 1 100%;
+  -webkit-flex: 1 1 100%;
   overflow: hidden;
   width: 100%;
 }
 
 .App-bottom {
   flex: 1 1 5vh;
+  -ms-flex: 1 1 5vh;
+  -webkit-flex: 1 1 5vh;
   width: 100%;
 }
 

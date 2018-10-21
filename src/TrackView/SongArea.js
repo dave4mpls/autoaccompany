@@ -60,11 +60,13 @@ export class SongArea extends Component {
                 startingTab={ TrackList.selected }
                 onTabClick={(newTab)=>this.handleTabClick(newTab) } 
                 rows={ songRows } 
+                browserFixHeight="auto"
                 ref={this.tabViewRef} >
                 { songRenderList    }
-                <Tab name="➕ New Song">
+                <Tab name="➕ New/Open">
                     <div className="track-heading">
                         <button onClick={(evt) => this.handleCreateClick(evt) }>➕Create New Song</button>
+                        <button onClick={(evt) => this.handleLoadClick(evt) }>📁Open Song from File</button>
                     </div>
                 </Tab>
             </TabView>

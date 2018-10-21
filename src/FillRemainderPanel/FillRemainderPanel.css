@@ -1,5 +1,9 @@
 .fill-remainder-container-row {
     display: flex;
+    display: -webkit-box; 
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
     height: 100%; 
     width: 100%;
     left: 0px;
@@ -13,6 +17,10 @@
 
 .fill-remainder-container-column {
     display: flex;
+    display: -webkit-box; 
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
     height: 100%; 
     width: 100%;
     left: 0px;

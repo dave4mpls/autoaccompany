@@ -20,7 +20,7 @@ import { RecordingControls } from './TrackView/RecordingControls.js';
 export class RecordingArea extends Component {
     render() {
         return (
-            <TabView rows={1} color="#07c5b2">
+            <TabView rows={1} color="#07c5b2" browserFixHeight="40vh">
                 <Tab name="🎶 Tracks">
                     <FillRemainderPanel direction="column" sizes={["20vh","100%"]}>
                         <RecordingControls compact={false} />

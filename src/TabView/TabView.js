@@ -37,14 +37,46 @@ export class Tab extends Component {
 
 export class TabView extends Component {
 
-    static defaultProps = { startingTab: 0, rows: 1, height: null, color: "#009688" };
+    static defaultProps = { startingTab: 0, rows: 1, height: null, color: "#009688", browserFixHeight: "50vh", useBrowserFix: true };
     static propTypes = {  };
 
     constructor(props) {
         super(props);
         this.state = { tabInfo: this.getTabInfo(this.props.startingTab) }
+        //--- See fixBrowserHeightBug function for details on why we create the following ref.
+        this.contentSetRef = React.createRef();
     }
 
+    fixBrowserHeightBug() {
+        //-- We create the content-set ref in order to access the content set on a timer,
+        //-- which we do in order to dynamically correct the problem where Safari < 11.0
+        //-- and some older browsers make everything 0 pixels high and mess up the whole layout because the
+        //-- parents of many tab controls use flexbox instead of explicit height to set their height.
+        //-- The way it works is that first we create the ref that links to the content-set element
+        //-- in the DOM for each tab control.  Then we wait a little while for rendering to settle,
+        //-- then we see if the actual height of the content set is 0, which means that the line
+        //-- in the render function that sets the height to 100% didn't work because some browsers
+        //-- won't let you make 100% of a height that is set by flexbox instead of "height".  
+        //-- (We leave the height in because otherwise scrolling doesn't work right on modern browsers.)
+        //-- If the actual height is zero, we set the style height to "250px" because deleting the
+        //-- height makes Safari unable to scroll.  Then everything mostly works everywhere.
+        let thisObject = this;
+        if (!this.props.useBrowserFix) return;  // caller has option to turn this off-- but why?  They also can set the default height for each separate tab view.
+        setTimeout(function() {
+            try {
+                console.log("Fix Browser Height started");
+                let thisNode = thisObject.contentSetRef.current;
+                console.log("Original Client Height: " + thisNode.clientHeight);
+                if (thisNode.clientHeight === 0) {
+                    console.log("Updated Client Height");
+                    thisNode.style.height = thisObject.props.browserFixHeight;
+                    thisNode.style.overflow = "visible";
+                    setTimeout(function() { console.log("New Content Height: " + thisNode.clientHeight); },500);
+                }
+            } catch(e) { }
+        },500);
+    }
+    
     reloadTabs(selectedTab) {
         // can be called if you get a ref to the tabview; used to force
         // change when a tab is added/removed by parent
@@ -127,6 +159,7 @@ export class TabView extends Component {
         let contentSetStyle = { };
         if (this.props.color) contentSetStyle.backgroundColor = this.props.color;
         contentSetStyle.height = "100%";
+        this.fixBrowserHeightBug();  // fixes the browsers that can't handle the above content set height; see function for details
         let tabLinkSetClassName = "tablinkset_" + (tabInfo.rows) + "row";
         let tabContentSetClassName = "tabcontentset_row" + (tabInfo.rows);
         // Render
@@ -172,7 +205,7 @@ export class TabView extends Component {
                     }()
                 }
             </div>
-            <div className={ tabContentSetClassName } style={ contentSetStyle } >
+            <div className={ tabContentSetClassName } style={ contentSetStyle } ref={this.contentSetRef} >
             { 
                 function() {
                     let tabcomp = [];

@@ -6,81 +6,44 @@
     border: solid black 1px;
     border-bottom-left-radius: 4px;
     border-bottom-right-radius: 4px;
+    font-size: 0;
 }
 
-@media screen and (orientation:portrait) {
-    .piano-key-white {
-        width: 12vw;
-        height: 25vh;   /* overridden in code */
-        min-height: 140px;
-        background-color: white;
-        z-index: 5;
-    }  
+.piano-key-white {
+    /* keys changed to absolute widths so they don't get weird with certain screen sizes */
+    width: 1cm;  /* was: 6vw; */
+    /* this is what caused the problem-- but without it, relative sizes make too big of keys on a wide screen! max-width: 60px; */
+    height: 25vh;   /* overridden in code */
+    background-color: white;
+    min-height: 140px;
+    z-index: 5;
+}  
 
-    .piano-key-drums {
-        width: 10vw;
-        height: 25vh;   /* overridden in code */
-        font-size: 12px;
-        white-space: normal;
-        background-color: #d0d0d0;
-        border-radius: 14px;
-        z-index: 5;
-        min-height: 60px;
-        overflow: hidden;
-    }  
+.piano-key-drums {
+    width: 10vw;
+    height: 25vh;   /* overridden in code */
+    background-color: #d0d0d0;
+    font-size: 12px;
+    white-space: normal;
+    border-radius: 14px;
+    z-index: 5;
+    min-height: 60px;
+    overflow: hidden;
+}  
 
-    .piano-key-black {
-        width: 8vw;
-        margin-left: -4vw;
-        height: 12vh;   /* overridden in code */
-        min-height: 70px;
-        background-color: black;
-        z-index: 10;
-    }
-
-    /* Shiftback has to shift back a whole white key to make the piano keys overlap properly. */
-    .piano-key-shiftback {
-        margin-left: -4vw;
-    }
+.piano-key-black {
+    width: 0.66667cm;  /* was: 4vw; */
+    /* max-width: 40px; */
+    margin-left: -0.33333cm; /* was: -2vw; */
+    height: 12vh;   /* overridden in code */
+    background-color: black;
+    min-height: 70px;
+    z-index: 10;
 }
 
-@media screen and (orientation:landscape) {
-    .piano-key-white {
-        /* keys changed to absolute widths so they don't get weird with certain screen sizes */
-        width: 1cm;  /* was: 6vw; */
-        /* this is what caused the problem-- but without it, relative sizes make too big of keys on a wide screen! max-width: 60px; */
-        height: 25vh;   /* overridden in code */
-        background-color: white;
-        min-height: 140px;
-        z-index: 5;
-    }  
-
-    .piano-key-drums {
-        width: 10vw;
-        height: 25vh;   /* overridden in code */
-        background-color: #d0d0d0;
-        font-size: 12px;
-        white-space: normal;
-        border-radius: 14px;
-        z-index: 5;
-        min-height: 60px;
-        overflow: hidden;
-    }  
-
-    .piano-key-black {
-        width: 0.66667cm;  /* was: 4vw; */
-        /* max-width: 40px; */
-        margin-left: -0.33333cm; /* was: -2vw; */
-        height: 12vh;   /* overridden in code */
-        background-color: black;
-        min-height: 70px;
-        z-index: 10;
-    }
-
-    /* Shiftback has to shift back a whole white key to make the piano keys overlap properly. */
-    .piano-key-shiftback {
-        margin-left: -0.33333cm; /* was: -2vw; */
-    }
+/* Shiftback has to shift back a whole white key to make the piano keys overlap properly. */
+.piano-key-shiftback {
+    margin-left: -0.33333cm; /* was: -2vw; */
 }
 
 .piano-key-down {

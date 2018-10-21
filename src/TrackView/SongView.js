@@ -6,6 +6,8 @@ import React, { Component } from 'react';
 import { TrackView } from './TrackView.js';
 import { TrackList } from '../Music/TrackStorage.js';
 import { SettingsPanel, SettingsRow } from '../SettingsPanel/SettingsPanel.js';
+import { AutoAccompanySettings } from '../Music/AutoAccompany.js';
+import { Track } from '../Music/Track.js';
 import { Song } from '../Music/Song.js';
 import './TrackStyles.css';
 
@@ -34,9 +36,14 @@ export class SongView extends Component {
             });
         })
     }
-    handleDeleteSong() {
-        if (window.confirm("Are you sure you want to delete this song?"))
+    handleCloseSong() {
+        if (window.confirm("Are you sure you want to close this song?  If it hasn't been saved or exported, you won't be able to get it back!"))
             TrackList.deleteSongObject(this.props.song);
+    }
+    handleAddTrack() {
+        let newPianoTrack = this.props.song.addTrackOnOpenChannel();
+        newPianoTrack.setProperty("instrument", 0);  // piano
+        newPianoTrack.autoAccompany.aaType = AutoAccompanySettings.AA_NOCHANGE;
     }
     handleEditSong() {
         // for editing the song we open the popup window.
@@ -62,8 +69,9 @@ export class SongView extends Component {
         let thisObject = this;
         return (
             <div className="track-heading">
-                <button onClick={()=>this.handleDeleteSong()}>🗑️ Delete Song</button>
+                <button onClick={()=>this.handleCloseSong()}>❎ Close Song</button>
                 <button onClick={()=>this.handleEditSong()}>✏️ Edit Song</button>
+                <button onClick={()=>this.handleAddTrack()}>➕ Add Track</button>
                 <div>
                     {
                         function() {
