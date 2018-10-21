@@ -18,7 +18,7 @@ class RecordingButton extends Component {
         let recordingButtonClassName = "recording-button";
         if (this.props.double) recordingButtonClassName += " recording-button-double"
         return (
-            <button className={ recordingButtonClassName} >
+            <button onClick={ this.props.onClick } className={ recordingButtonClassName} >
                 { this.props.symbol }
                 <span className={ textClassName } style={ textStyle }>
                 { " " + this.props.name + " " }
@@ -28,17 +28,43 @@ class RecordingButton extends Component {
     }
 }
 
+
 export class RecordingControls extends Component {
     static defaultProps = { compact: false };
+
+    handleRecord() {
+        AAPlayer.recordButtonPressed();
+    }
+    
+    handlePlayRecord() {
+        AAPlayer.playRecordButtonPressed();
+    }
+    
+    handleRecordNext() {
+        AAPlayer.recordNextButtonPressed();
+    }
+    
+    handleStop() {
+        AAPlayer.stopButtonPressed();
+    }
+    
+    handlePlay() {
+        AAPlayer.playButtonPressed();
+    }
+    
+    handleRewind() {
+        AAPlayer.rewindButtonPressed();
+    }
+
     render() {
         return (
             <div className="recording-controls-container">
-                <RecordingButton symbol="⏺️️" name="Record" color="red" compact={this.props.compact} />
-                <RecordingButton symbol="⏺️▶️" name="Play & Record" color="red" compact={this.props.compact} />
-                <RecordingButton symbol="⏺️⏭️" name="Record Next" double={ true } color="red" compact={this.props.compact} />
-                <RecordingButton symbol="⏹️" name="Stop" compact={this.props.compact} />
-                <RecordingButton symbol="️️▶️" name="Play" compact={this.props.compact} />
-                <RecordingButton symbol="️️⏪" name="Rewind" compact={this.props.compact} />
+                <RecordingButton symbol="⏺️️" name="Record" color="red" compact={this.props.compact} onClick={()=>this.handleRecord()} />
+                <RecordingButton symbol="⏺️▶️" name="Play & Record" color="red" compact={this.props.compact} onClick={()=>this.handlePlayRecord()} />
+                <RecordingButton symbol="⏺️⏭️" name="Record Next" double={ true } color="red" compact={this.props.compact} onClick={()=>this.handleRecordNext()} />
+                <RecordingButton symbol="⏹️" name="Stop" compact={this.props.compact} onClick={()=>this.handleStop()} />
+                <RecordingButton symbol="️️▶️" name="Play" compact={this.props.compact} onClick={()=>this.handlePlay()} />
+                <RecordingButton symbol="️️⏪" name="Rewind" compact={this.props.compact} onClick={()=>this.handleRewind()} />
             </div>
         );
     }

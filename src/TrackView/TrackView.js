@@ -26,7 +26,7 @@ export class TrackView extends Component {
         // Add events to the track to make sure we get told when it updates
         this.props.track.attachEventHandler("onChange", function() {
             thisObject.setState(function(prevState) {
-                return { versionNumber: thisObject.props.song.getVersionNumber() }
+                return { versionNumber: thisObject.props.track.getVersionNumber() }
             }, function() {
                 // things to do after state is set
             });

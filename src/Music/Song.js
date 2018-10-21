@@ -331,6 +331,13 @@ export class Song {
         return -1;
     }
 
+    isRecording() {
+        for (var i = 0; i < this._tracks.length; i++) {
+            if (this._tracks[i].isRecording()) return true;
+        }
+        return false;
+    }
+
     recordNext() {
         // While recording and playing, stop recording the current track, start playing it
         // on infinite repeat starting from the first note (remove any starting wait time),

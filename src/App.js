@@ -9,6 +9,7 @@ import React, { Component } from 'react';
 import logo from './logo.svg';
 import './App.css';
 import { FillRemainderPanel } from './FillRemainderPanel/FillRemainderPanel.js';
+import { MusicStatusBar } from './MusicStatusBar.js';
 
 // MIDI related imports
 import { AAPlayer } from './MIDI/AAPlayer.js';
@@ -28,6 +29,7 @@ class App extends Component {
       soundsLoaded: false,
       settingsObject: { }
     };
+    AAPlayer.musicStatusBar = React.createRef();
   }
 
   componentDidMount() {
@@ -106,7 +108,7 @@ class App extends Component {
       return (
         <div className="App">
           <header className="App-header">
-            <h1 className="App-title">Loading Sounds...</h1>
+            <h1 className="App-title">Musical Playground<br/><span style={{fontSize: "80%"}}>Loading Sounds...</span></h1>
           </header>
         </div>
         );
@@ -115,9 +117,12 @@ class App extends Component {
       // regular rendering of the app -- notice hack for Internet Explorer
       return (
         <div className="App">
-          <FillRemainderPanel direction="row" sizes={ [(window.ie ? "8vh" : "100%"), "5vh"]}>
-            <RecordingArea />
-            <InstrumentTabs />
+          <FillRemainderPanel direction="row" sizes={ [ "20px", "100%"]}>
+            <MusicStatusBar ref={AAPlayer.musicStatusBar }/>
+            <FillRemainderPanel direction="row" sizes={ [(window.ie ? "8vh" : "100%"), "5vh"]}>
+              <RecordingArea />
+              <InstrumentTabs />
+            </FillRemainderPanel>
           </FillRemainderPanel>
         </div>
       );

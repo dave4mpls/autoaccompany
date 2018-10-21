@@ -98,6 +98,7 @@ export class Track {
         // outsiders must call this to get a property.
         return this["_"+p];
     }
+    getVersionNumber() { return this._versionNumber; }
 
     startRecording() {
         // Call this at the beginning of recording.
@@ -125,7 +126,7 @@ export class Track {
         // view (which lets you sort the notes different ways-- sorting by ID means "order of
         // playback").  
         let previousId = (i > 0 ? this._notes[i-1].id : 0);
-        let nextId = (i < this._notes.length ? this._notes[i+1].id : this._notes[i].id + 200);
+        let nextId = (i < this._notes.length-1 ? this._notes[i+1].id : this._notes[i].id + 200);
         let currentId = (previousId + nextId) / 2;
         if (Math.floor(currentId) > previousId && Math.floor(currentId) < nextId) 
             currentId = Math.floor(currentId);

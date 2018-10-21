@@ -6,6 +6,11 @@
 import { Synth } from './tinysynth.js';  // 8/29/18: Substituted my improved tinysynth for midi.js npm module, bringing everything into one repository with improved audio!
 import { SettingsStorage } from '../SettingsPanel/Settings.js';
 import { EventHandler } from '../EventHandler.js';
+import { Track } from '../Music/Track.js';
+import { Song } from '../Music/Song.js';
+import { Note } from '../Music/Note.js';
+import { TrackStorage, TrackList } from '../Music/TrackStorage.js';
+import { MusicStatusBar } from '../MusicStatusBar.js';
 
 class AAPlayerClass {
 
@@ -26,11 +31,81 @@ class AAPlayerClass {
             // etc.)
             // onInputNoteOn: it gets called when a screen keyboard key is pressed
             // onInputNoteOff: it gets called when a screen keyboard key is released
-
+            
         // Internal state
+        this.recordingSong = null;
+
+        // Helper functions for the recording features
+        thisObject.isRecording = function() {
+            for (var i = 0; i < TrackList.songs.length; i++) {
+                if (TrackList.songs[i].isRecording()) return true;
+            }
+            return false;
+        };
+
+        thisObject.stopAllRecording = function() {
+            for (var i = 0; i < TrackList.songs.length; i++) {
+                if (TrackList.songs[i].isRecording()) TrackList.songs[i].stopRecording();
+            }
+        }
+
+        thisObject._validateSelection = function(verbName) {
+            // Validates that we have a valid selection for verbname, which is either "record" or "play".
+            // Returns false if not validated, an object with useful items if validated.
+            var currentSongIndex = TrackList.selected;
+            thisObject.stopAllRecording();
+            if (currentSongIndex < 0 || currentSongIndex >= TrackList.songs.length) {
+                alert("You have to select an existing song first.");
+                return false;
+            }
+            var currentSong = TrackList.songs[currentSongIndex];
+            if (verbName === "play") return ({ currentSongIndex: currentSongIndex, currentTrackIndex: currentTrackIndex });
+            var currentTrackIndex = currentSong.getSelected();
+            var currentTrack = currentSong.getTrack(currentTrackIndex);
+            var currentTrackType = currentTrack.getProperty("trackType");
+            if (currentTrackType !== Track.TR_REGULAR) {
+                alert("You cannot record into a chord or rhythm track-- record into a regular instrument track.");
+                return false;
+            }
+            return ({ currentSongIndex: currentSongIndex, currentTrackIndex: currentTrackIndex, currentSong: currentSong, currentTrack: currentTrack });
+        };
 
         // Recording and playback: main buttons
-        
+        thisObject.recordButtonPressed = function() {
+            //try {
+                var x =  thisObject._validateSelection("record"); if (x===false) return;
+                TrackList.songs[x.currentSongIndex].startRecordingOnTrack(x.currentTrackIndex);
+                thisObject.recordingSong = x.currentSong;
+                AAPlayer.musicStatusBar.current.setStatus({recordingStatus: true});
+            //} catch(e) { }
+        };
+        thisObject.playRecordButtonPressed = function() {
+
+        };
+        thisObject.recordNextButtonPressed = function() {
+
+        };
+        thisObject.stopButtonPressed = function() {
+            try {
+                if (!thisObject._validateSelection("play")) return;
+                TrackList.songs[TrackList.selected].stop();
+                TrackList.songs[TrackList.selected].stopRecording();
+                AAPlayer.musicStatusBar.current.setStatus({recordingStatus: false, playingStatus: false});
+            } catch(e) { }
+        };
+        thisObject.playButtonPressed = function() {
+            try {
+                if (!thisObject._validateSelection("play")) return;
+                TrackList.songs[TrackList.selected].play();
+                AAPlayer.musicStatusBar.current.setStatus({playingStatus: true});
+            } catch(e) { }
+        };
+        thisObject.rewindButtonPressed = function() {
+
+        };
+
+        // Music Status Bar link
+        thisObject.musicStatusBar = null;  // set by main app to the main status bar so we can get at it from anywhere.
 
         // Support routines for input processing, recording and routing
         thisObject.handleMIDIDeviceInput = function (message) {
@@ -91,12 +166,18 @@ class AAPlayerClass {
             // Used for sending a passthrough Midi message that isn't being interpreted.  Exists as
             // a place to attach, for example, recording calls to ensure all weird MIDI messages get
             // recorded.
-
+            if (thisObject.isRecording()) {
+                var dataCopy = data.slice(0);
+                while (dataCopy.length < 3) dataCopy.push(0);
+                thisObject.recordingSong.recordEvent(0,Note.NT_MIDI, dataCopy[0] & 0x0F, dataCopy[0], dataCopy[1], dataCopy[2]);
+            }
             //-- send the message through Midi if it is enabled
             if (thisObject.supportsMIDI()) Synth.send(data, 0);
         }
 
         thisObject.sendInputNoteOn = function(channel, noteNumber, velocity, inputSource = "internal") {
+            if (thisObject.isRecording())
+                thisObject.recordingSong.recordEvent(0,Note.NT_NOTE_ON, channel, noteNumber, velocity, 0);
             if (thisObject.fireEvent("onInputNoteOn",
                     {channel: channel, noteNumber: noteNumber, 
                     velocity: velocity, inputSource: inputSource}))
@@ -105,6 +186,8 @@ class AAPlayerClass {
             thisObject.noteOn(channel, noteNumber, velocity, 0);
         }
         thisObject.sendInputNoteOff = function(channel, noteNumber, inputSource = "internal") {
+            if (thisObject.isRecording())
+                thisObject.recordingSong.recordEvent(0,Note.NT_NOTE_OFF, channel, noteNumber,0 , 0);
             if (thisObject.fireEvent("onInputNoteOff",
                     {channel: channel, noteNumber: noteNumber, 
                     inputSource: inputSource}))
@@ -113,10 +196,14 @@ class AAPlayerClass {
             thisObject.noteOff(channel, noteNumber);
         }
         thisObject.sendInputProgramChange = function(channel, instrument, inputSource = "internal") {
+            if (thisObject.isRecording())
+                thisObject.recordingSong.recordEvent(0,Note.NT_PROGRAM_CHANGE, channel, instrument,0 , 0);
             if (!SettingsStorage.getSetting("playNotesFromMIDI") && inputSource !== "internal") return;
             thisObject.programChange(channel, instrument);
         }
         thisObject.sendInputPitchBend = function(channel, bend, inputSource = "internal") {
+            if (thisObject.isRecording())
+                thisObject.recordingSong.recordEvent(0,Note.NT_PITCH_BEND, channel, bend,0 , 0);
             if (!SettingsStorage.getSetting("playNotesFromMIDI") && inputSource !== "internal") return;
             thisObject.pitchBend(channel, bend);
         }

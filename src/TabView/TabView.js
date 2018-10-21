@@ -64,14 +64,14 @@ export class TabView extends Component {
         if (!this.props.useBrowserFix) return;  // caller has option to turn this off-- but why?  They also can set the default height for each separate tab view.
         setTimeout(function() {
             try {
-                console.log("Fix Browser Height started");
+                //console.log("Fix Browser Height started");
                 let thisNode = thisObject.contentSetRef.current;
-                console.log("Original Client Height: " + thisNode.clientHeight);
+                //console.log("Original Client Height: " + thisNode.clientHeight);
                 if (thisNode.clientHeight === 0) {
-                    console.log("Updated Client Height");
+                    //console.log("Updated Client Height");
                     thisNode.style.height = thisObject.props.browserFixHeight;
                     thisNode.style.overflow = "visible";
-                    setTimeout(function() { console.log("New Content Height: " + thisNode.clientHeight); },500);
+                    //setTimeout(function() { console.log("New Content Height: " + thisNode.clientHeight); },500);
                 }
             } catch(e) { }
         },500);

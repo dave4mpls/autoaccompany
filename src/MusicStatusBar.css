@@ -1,0 +1,20 @@
+.music-status-bar {
+    background-color: darkblue;
+    color: white;
+    width: 100%;
+    font-size: 16px;
+    text-align: left;
+    margin: 1px;
+}
+
+.msb-not-recording {
+    background-color: darkblue;
+    color: white;
+}
+
+.msb-recording {
+    background-color: red;
+    color: white;
+    font-weight: bold;
+}
+
