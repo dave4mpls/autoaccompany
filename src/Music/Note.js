@@ -62,12 +62,13 @@ export class Note {
         //-- plays it, and removes the note when it is done or when you call stop on the note.
         let myChannel = this.channel, myNoteNumber = this.noteNumber, myVelocity = this.velocity;
         let thisObject = this;
-        if (overrideChannel && overrideChannel !== this.NT_PLAYBACK_ORIGINAL_CHANNEL) {
+        if (overrideChannel && overrideChannel !== Note.NT_PLAYBACK_ORIGINAL_CHANNEL) {
             myChannel = overrideChannel;
         }
         if (overrideNoteNumber !== -1) myNoteNumber = overrideNoteNumber;
-        switch (Note.noteType) {
-            case this.NT_NOTE:
+        switch (this.noteType) {
+            case Note.NT_NOTE:
+            case Note.NT_NOTE_ON:
                 AAPlayer.noteOn(myChannel, myNoteNumber, myVelocity);
                 this.sf = function() {
                     // function for turning off a note and removing it from the note playing array.

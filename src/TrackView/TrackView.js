@@ -37,6 +37,11 @@ export class TrackView extends Component {
             this.props.track.getProperty("song").deleteTrackByRef(this.props.track);
         }
     }
+    handleClearTrack() {
+        if (window.confirm("Are you sure you want to clear all the notes out of this track?")) {
+            this.props.track.eraseAllEvents();
+        }
+    }
     handleEditTrack() {
         // for editing the song we open the popup window.
         this.openPopup();
@@ -85,6 +90,7 @@ export class TrackView extends Component {
                     <tr>
                         <td className="track-control-cell">
                             <button className="track-small-button" onClick={()=>this.handleDeleteTrack()}>🗑️ Delete</button><br />
+                            <button className="track-small-button" onClick={()=>this.handleClearTrack()}>⌫ Clear</button><br />
                             <button className="track-small-button" onClick={()=>this.handleEditTrack()}>✏️ Edit</button><br/>
                             <button className="track-small-button" onClick={()=>this.handleSoloButton()}>① Solo</button><br/>
                             <button className="track-small-button" onClick={()=>this.handleMuteButton()}>🔇 Mute</button><br/>

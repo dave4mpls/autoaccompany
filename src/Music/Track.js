@@ -40,6 +40,9 @@ export class Track {
         //--- determine unique track ID for local storage index
         this.resetMediaState();
 
+        //--- bind functions
+        this._internal_play = this._internal_play.bind(this);
+
         //--- linkback to song
         this._song = null;
 
@@ -103,7 +106,7 @@ export class Track {
     startRecording() {
         // Call this at the beginning of recording.
         this._downNotes = { };  // clear the down-notes array
-        this._startTime = performance.now();
+        this._startTime = AAPlayer.currentTimeMs();
         this._lastTime = this._startTime;
         this._isRecording = true;
         this.fireEvent("onRecordingStarted", this);
@@ -151,14 +154,15 @@ export class Track {
         // first, handle timestamps.  (Note Off events aren't recorded as separate events so they
         // don't advance the clock.)
         if (!this._isRecording) return;  // ignore if we haven't started recording yet
-        let currentTime = performance.now();
+        let currentTime = AAPlayer.currentTimeMs();
         let delta = currentTime - this._lastTime;
         if (eventType !== Note.NT_NOTE_OFF) this._lastTime = currentTime;
         // determine note signature for down-note hash
         let noteSig = channel + ":" + noteNumber;
         
         // record the delta as an NT_WAIT event
-        if (delta >= 0.01) this.addEvent(Note.NT_WAIT, channel, 0, 0, 0, delta);
+        if (delta >= 0.01 && eventType !== Note.NT_NOTE_OFF) 
+            this.addEvent(Note.NT_WAIT, channel, 0, 0, 0, delta);
 
         // now record the event
         if (eventType === Note.NT_NOTE_OFF) {
@@ -171,9 +175,10 @@ export class Track {
         }
         else {
             //-- all non-note-off events: create new note/event
+            if (eventType == Note.NT_NOTE_ON) eventType = Note.NT_NOTE;
             let newNote = this.addEvent(eventType, channel, noteNumber, velocity, extra, delta, 0);
             this.fireEvent("onNoteRecorded", {track: this, note: newNote});
-            if (eventType === Note.NT_NOTE_ON) {
+            if (eventType === Note.NT_NOTE_ON || eventType === Note.NT_NOTE) {
                 // for note-on, we have to save a down-note so we can determine note duration later.
                 let newDownNote = new DownNote(newNote, currentTime);
                 this._downNotes[noteSig] = newDownNote;
@@ -184,7 +189,7 @@ export class Track {
     turnOffAllNotes() {
         // Turns off all down notes.  Used at end of track and before repeats.
         // Effectively resolves the duration of any open notes so they end right now.
-        let currentTime = performance.now();
+        let currentTime = AAPlayer.currentTimeMs();
         for (let originalDownNote in this._downNotes) { 
             originalDownNote.note.duration = currentTime - originalDownNote.startTime;
         }
@@ -385,6 +390,7 @@ export class Track {
                     setTimeout(this._internal_play, thisNote.duration * 100.0 / this._speed);
                     return;  // NOT break because the song isn't over!
                 case Note.NT_NOTE:
+                case Note.NT_NOTE_ON:
                     // note: remember that if we play the note, we have to put it in the playing notes array
                     // and take it out again, such that the stop notes function can stop them all on a dime
                     if ((!this._mute) && (!this._soloMute)) {

@@ -18,6 +18,19 @@ export class MusicStatusBar extends Component {
     setStatus(stateObject) {
         // public function: sets the status of the status bar, resulting in re-rendering
         this.setState(stateObject);
+        if (stateObject.playingStatus) {
+            // if we are playing, set a timer to turn off the status when playing ends.
+            let thisObject = this;
+            let playCheckFunction = function() {
+                let aSongIsPlaying = false;
+                for (var i = 0; i < TrackList.songs.length; i++) {
+                    if (TrackList.songs[i].isPlaying()) aSongIsPlaying = true; 
+                }
+                if (!aSongIsPlaying) { thisObject.setStatus({playingStatus: false}); return; }
+                setTimeout(playCheckFunction, 250);
+            };
+            setTimeout(playCheckFunction, 250);
+        }
     }
 
     getStatus() {

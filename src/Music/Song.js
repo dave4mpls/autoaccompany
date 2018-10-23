@@ -109,7 +109,7 @@ export class Song {
     getSoloTrack() {
         // returns the current solo track, or -1 if none is present
         for (let i = 0; i < this._tracks.length; i++) {
-            if (this._tracks.getProperty("solo")) return i;
+            if (this._tracks[i].getProperty("solo")) return i;
         }
         return -1;
     }
@@ -159,10 +159,12 @@ export class Song {
         // Creates a default chord and rhythm track for a song (typically you do this after creating the song).
         let rhythmTrack = new Track();
         rhythmTrack.setProperty("trackType", Track.TR_RHYTHM);
+        rhythmTrack.setProperty("name", "RHYTHM TRACK");
         rhythmTrack.autoAccompany.aaType = AutoAccompanySettings.AA_NOCHANGE;
         let chordTrack = new Track();
         chordTrack.setProperty("trackType", Track.TR_CHORD);
         chordTrack.autoAccompany.aaType = AutoAccompanySettings.AA_NOCHANGE;
+        chordTrack.setProperty("name","CHORD TRACK");
         this.addTrack(rhythmTrack);
         this.addTrack(chordTrack);
     }
@@ -172,6 +174,7 @@ export class Song {
         let drumTrack = new Track();
         drumTrack.setProperty("playbackChannel",9);
         drumTrack.setProperty("instrument",0);
+        drumTrack.setProperty("name","DRUM TRACK");
         drumTrack.autoAccompany.aaType = AutoAccompanySettings.AA_NOCHANGE;
         this.addTrack(drumTrack);
         let bassTrack = new Track();
@@ -180,16 +183,19 @@ export class Song {
         bassTrack.autoAccompany.aaType = AutoAccompanySettings.AA_AUTO;
         bassTrack.autoAccompany.aaKey = 0;  // bass adjusts auto-accompaniment based on autodetermining the accompaniment style based on what you played.
         bassTrack.autoAccompany.aaScale = "MAJOR";
+        bassTrack.setProperty("name", "BASS TRACK");
         this.addTrack(bassTrack);
         let pianoTrack = new Track();
         pianoTrack.setProperty("playbackChannel",3);
         pianoTrack.setProperty("instrument",0);     // piano overlays bass-- do the same basic pattern in C major, then the melody track (saxophone) can control both piano and bass with the accompaniment keyboard.
         pianoTrack.autoAccompany = bassTrack.autoAccompany.clone();
+        pianoTrack.setProperty("name","PIANO TRACK");
         this.addTrack(pianoTrack);
         let hornTrack = new Track();
         hornTrack.setProperty("playbackChannel",4);
         hornTrack.setProperty("instrument", 65);  // alto sax
         hornTrack.autoAccompany.aaType = AutoAccompanySettings.AA_NOCHANGE;
+        hornTrack.setProperty("name","HORN TRACK");
         this.addTrack(hornTrack);
     }
 
@@ -426,6 +432,13 @@ export class Song {
     stop() {
         // Force-stops (or pauses) all tracks.
         for (let i = 0; i < this._tracks.length; i++) this._tracks[i].stop();
+    }
+
+    isPlaying() {
+        for (let i = 0; i < this._tracks.length; i++) {
+            if (this._tracks[i].isPlaying()) return true;
+        }
+        return false;
     }
 
     //

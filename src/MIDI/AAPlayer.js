@@ -94,14 +94,17 @@ class AAPlayerClass {
             } catch(e) { }
         };
         thisObject.playButtonPressed = function() {
-            try {
+            //try {
                 if (!thisObject._validateSelection("play")) return;
                 TrackList.songs[TrackList.selected].play();
                 AAPlayer.musicStatusBar.current.setStatus({playingStatus: true});
-            } catch(e) { }
+            //} catch(e) { }
         };
         thisObject.rewindButtonPressed = function() {
-
+            //try {
+                if (!thisObject._validateSelection("play")) return;
+                TrackList.songs[TrackList.selected].rewind();
+            //} catch(e) { }
         };
 
         // Music Status Bar link
@@ -306,6 +309,8 @@ class AAPlayerClass {
             }
         }
         thisObject.currentTime = function() { return Synth.currentTime(); }
+        thisObject.currentTimeSecs = function() { return Synth.currentTime(); } 
+        thisObject.currentTimeMs = function() { return Synth.currentTime() * 1000.0; }
         thisObject.noteOn = function(channel, noteNumber, velocity, delay) {
             Synth.send([0x90 + (channel & 0x0F), noteNumber & 0x7F, velocity & 0x7F], delay);
         }
